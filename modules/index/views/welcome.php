@@ -38,7 +38,8 @@ class View extends \Kotchasan\View
       '/{EMAIL}/' => Login::$login_params['username'],
       '/{PASSWORD}/' => Login::$login_params['password'],
       '/{MESSAGE}/' => Login::$login_message,
-      '/{CLASS}/' => empty(Login::$login_message) ? 'hidden' : (empty(Login::$login_input) ? 'message' : 'error')
+      '/{CLASS}/' => empty(Login::$login_message) ? 'hidden' : (empty(Login::$login_input) ? 'message' : 'error'),
+      '/<REGISTER>(.*)<\/REGISTER>/isu' => self::$cfg->demo_mode ? '' : '\\1'
     ));
     return (object)array(
         'content' => $template->render(),
@@ -60,7 +61,8 @@ class View extends \Kotchasan\View
       '/{TOKEN}/' => $request->createToken(),
       '/{EMAIL}/' => Login::$login_params['username'],
       '/{MESSAGE}/' => Login::$login_message,
-      '/{CLASS}/' => empty(Login::$login_message) ? 'hidden' : (empty(Login::$login_input) ? 'message' : 'error')
+      '/{CLASS}/' => empty(Login::$login_message) ? 'hidden' : (empty(Login::$login_input) ? 'message' : 'error'),
+      '/<REGISTER>(.*)<\/REGISTER>/isu' => self::$cfg->demo_mode ? '' : '\\1'
     ));
     return (object)array(
         'content' => $template->render(),
@@ -81,7 +83,7 @@ class View extends \Kotchasan\View
     $template->add(array(
       '/{Terms of Use}/' => '<a href="{WEBURL}index.php?module=terms">{LNG_Terms of Use}</a>',
       '/{Privacy Policy}/' => '<a href="{WEBURL}index.php?module=policy">{LNG_Privacy Policy}</a>',
-      '/{TOKEN}/' => $request->createToken(),
+      '/{TOKEN}/' => $request->createToken()
     ));
     return (object)array(
         'content' => $template->render(),

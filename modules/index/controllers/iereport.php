@@ -56,7 +56,8 @@ class Controller extends \Gcms\Controller
         }
       } else {
         if ($index['month'] > 0) {
-          $this->title .= ' '.Language::get('month').' '.Language::get('MONTH_LONG')[$index['month']];
+          $month_long = Language::get('MONTH_LONG');
+          $this->title .= ' '.Language::get('month').' '.$month_long[$index['month']];
         }
         if ($index['year'] > 0) {
           $this->title .= ' '.Language::get('year').' '.($index['year'] + Language::get('YEAR_OFFSET'));

@@ -111,10 +111,7 @@ class Html extends \Kotchasan\KBase
       $comment['id'] = 'result_'.$attributes['id'];
     }
     foreach ($attributes as $key => $value) {
-      if ($key == 'comment') {
-        $comment['class'] = 'comment';
-        $comment['innerHTML'] = $value;
-      } elseif ($key == 'checkbox' || $key == 'radio') {
+      if ($key == 'checkbox' || $key == 'radio') {
         foreach ($value as $v => $text) {
           $chk = isset($attributes['value']) && in_array($v, $attributes['value']) ? ' checked' : '';
           $rows[] = '<label>'.$text.'&nbsp;<input type='.$key.$id.$name.$chk.' value="'.$v.'"></label>';
@@ -126,6 +123,11 @@ class Html extends \Kotchasan\KBase
       $obj->appendChild(implode('&nbsp; ', $rows));
     }
     if (isset($attributes['comment'])) {
+      if (isset($attributes['commentId'])) {
+        $comment['id'] = $attributes['commentId'];
+      }
+      $comment['class'] = 'comment';
+      $comment['innerHTML'] = $value;
       $item->add('div', $comment);
     }
     return $obj;
@@ -133,7 +135,7 @@ class Html extends \Kotchasan\KBase
 
   private function addRadioOrCheckbox($tag, $attributes)
   {
-    $prop = array('class' => 'item');
+    $prop = array('class' => empty($attributes['itemClass']) ? 'item' : $attributes['itemClass']);
     if (!empty($attributes['itemId'])) {
       $prop['id'] = $attributes['itemId'];
     }
@@ -164,20 +166,17 @@ class Html extends \Kotchasan\KBase
     ));
     if (!empty($attributes['options']) && is_array($attributes['options'])) {
       foreach ($attributes['options'] as $v => $label) {
-        if (isset($attributes['value'])) {
-          if (is_array($attributes['value'])) {
-            $checked = isset($attributes['value']) && in_array($v, $attributes['value']);
-          } else {
-            $checked = isset($attributes['value']) && $v == $attributes['value'];
-          }
-        } else {
-          $checked = false;
-        }
         $item = array(
           'label' => $label,
           'value' => $v,
-          'checked' => $checked
         );
+        if (isset($attributes['value'])) {
+          if (is_array($attributes['value']) && in_array($v, $attributes['value'])) {
+            $item['checked'] = $v;
+          } elseif ($v == $attributes['value']) {
+            $item['checked'] = $v;
+          }
+        }
         if ($name) {
           $item['name'] = $name;
         }

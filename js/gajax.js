@@ -105,7 +105,7 @@ window.$K = (function () {
   Date.prototype.formatter = function (c) {
     switch (c) {
       case "d":
-        return this.getDate();
+        return this.getDate().toString().leftPad(2, '0');
       case "D":
         return Date.dayNames[this.getDay()];
       case "y":
@@ -113,7 +113,7 @@ window.$K = (function () {
       case "Y":
         return (this.getFullYear() + Date.yearOffset).toString();
       case "m":
-        return this.getMonth() + 1;
+        return (this.getMonth() + 1).toString().leftPad(2, '0');
       case "M":
         return Date.monthNames[this.getMonth()];
       case "H":
@@ -482,6 +482,23 @@ window.$K = (function () {
       return window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft;
     }
   };
+  document.css = function (css, id) {
+    var style = document.createElement('style');
+    if (id) {
+      style.id = 'css_' + id;
+      if ($E('css_' + id)) {
+        $E('css_' + id).parentNode.removeChild($E('css_' + id));
+      }
+    }
+    if (css !== null) {
+      if (style.styleSheet) {
+        style.styleSheet.cssText = css;
+      } else {
+        style.appendChild(document.createTextNode(css));
+      }
+      document.getElementsByTagName('head')[0].appendChild(style);
+    }
+  };
   Object.extend = function (d, s) {
     for (var property in s) {
       d[property] = s[property];
@@ -694,7 +711,7 @@ window.$K = (function () {
       if (s == 'opacity') {
         return Object.isNull(v) ? 100 : (parseFloat(v) * 100);
       } else {
-        return v == 'auto' ? null : v;
+        return v;
       }
     },
     setStyle: function (p, v) {
@@ -1025,6 +1042,17 @@ window.$K = (function () {
         }
       }
       return this;
+    },
+    findLabel: function () {
+      var result = null,
+        id = this.id;
+      forEach(document.getElementsByTagName('label'), function () {
+        if (this.htmlFor != '' && this.htmlFor == id) {
+          result = this;
+          return true;
+        }
+      });
+      return result;
     },
     element: function () {
       return Object.isString(this.elem) ? document.getElementById(this.elem) : this.elem;
@@ -1547,7 +1575,7 @@ window.$K = (function () {
             } else if (obj.type == 'tel' && !obj.dataset['keyboard']) {
               obj.dataset['keyboard'] = '1234567890';
             }
-            if (obj.type == 'currency' || obj.type == 'number' || obj.type == 'integer' || obj.type == 'date') {
+            if (obj.type == 'currency' || obj.type == 'number' || obj.type == 'integer' || obj.type == 'date' || obj.type == 'range') {
               if (elem.min) {
                 obj.min = elem.min;
               }
@@ -1570,9 +1598,8 @@ window.$K = (function () {
               'id': elem.id
             };
             var hidden = $G(text.parentNode).create('input', o);
-            text = $G().create('input', {
-              'type': 'text'
-            });
+            text = document.createElement('input');
+            text.setAttribute('type', 'text');
             if (obj.title != '') {
               text.title = obj.title;
             }
@@ -1592,20 +1619,27 @@ window.$K = (function () {
               text.placeholder = elem.placeholder;
             }
             hidden.value = elem.get('value');
-            window.setInterval(function () {
-              if (hidden.value != src.old) {
-                src.old = hidden.value;
-                src.setDate(hidden.value);
+            hidden.timer = window.setInterval(function () {
+              if ($E(hidden)) {
+                if (hidden.value != src.old) {
+                  src.old = hidden.value;
+                  src.setDate(hidden.value);
+                }
+                if (hidden.disabled != text.disabled) {
+                  text.disabled = hidden.disabled ? true : false;
+                }
+                if (hidden.readOnly != text.readOnly) {
+                  text.readOnly = hidden.readOnly ? true : false;
+                }
+              } else {
+                window.clearInterval(hidden.timer);
               }
-              if (hidden.disabled != text.disabled) {
-                text.disabled = hidden.disabled ? true : false;
-              }
-              if (hidden.readOnly != text.readOnly) {
-                text.readOnly = hidden.readOnly ? true : false;
-              }
-            }, 500);
+            }, 100);
             hidden.display = text;
+            text.calendar = src;
             elem.replace(text);
+          } else if (obj.type == 'range') {
+            new GRange(elem);
           } else if (obj.type == 'number' || obj.type == 'integer' || obj.type == 'tel' || obj.type == 'email' || obj.type == 'url' || obj.type == 'color' || obj.type == 'currency' || obj.type == 'time') {
             var o = {
               'type': 'text',
@@ -1683,12 +1717,15 @@ window.$K = (function () {
               elem.style.top = 1;
               p.style.position = 'relative';
               elem.addEvent('change', _doFileChanged);
-              text = $G(p).create('input', {'type': 'text'});
+              text = document.createElement('input');
+              text.setAttribute('type', 'text');
               text.disabled = true;
               text.placeholder = elem.placeholder;
-              elem.display = text;
+              p.appendChild(text);
+              elem.display = $G(text);
               elem.style.zIndex = text.style.zIndex + 1;
-              elem.style.height = text.getHeight() + 'px';
+              elem.style.height = '100%';
+              elem.style.width = '100%';
             }
           } else if (obj.dataset['keyboard']) {
             if (!obj.pattern) {
@@ -2098,7 +2135,7 @@ window.$K = (function () {
   window.GEvent = {
     isButton: function (e, code) {
       var button;
-      e = !e ? window.event : e;
+      e = window.event || e;
       if (e.which == null) {
         button = (e.button < 2) ? 0 : ((e.button == 4) ? 1 : 2);
       } else {
@@ -2116,25 +2153,25 @@ window.$K = (function () {
       return GEvent.isButton(e, 2);
     },
     isCtrlKey: function (e) {
-      return !e ? window.event.ctrlKey : e.ctrlKey;
+      return window.event ? window.event.ctrlKey : e.ctrlKey;
     },
     isShiftKey: function (e) {
-      return !e ? window.event.shiftKey : e.shiftKey;
+      return window.event ? window.event.shiftKey : e.shiftKey;
     },
     isAltKey: function (e) {
-      return !e ? window.event.altKey : e.altKey;
+      return window.event ? window.event.altKey : e.altKey;
     },
     element: function (e) {
-      e = !e ? window.event : e;
+      e = window.event || e;
       var node = e.target ? e.target : e.srcElement;
       return e.nodeType == 3 ? node.parentNode : node;
     },
     keyCode: function (e) {
-      e = !e ? window.event : e;
+      e = window.event || e;
       return e.which || e.keyCode;
     },
     stop: function (e) {
-      e = !e ? window.event : e;
+      e = window.event || e;
       if (e.stopPropagation) {
         e.stopPropagation();
       }
@@ -2145,7 +2182,7 @@ window.$K = (function () {
       e.returnValue = false;
     },
     pointer: function (e) {
-      e = !e ? window.event : e;
+      e = window.event || e;
       return {
         x: e.pageX || (e.clientX + (document.documentElement.scrollLeft || document.body.scrollLeft)),
         y: e.pageY || (e.clientY + (document.documentElement.scrollTop || document.body.scrollTop))
@@ -2402,7 +2439,7 @@ window.$K = (function () {
       this.moveObj = $G(move_id);
       var Hinstance = this;
       function _beginDrag() {
-        if (Hinstance.options.beginDrag.call(Hinstance.moveObj)) {
+        if (Hinstance.options.beginDrag.call(Hinstance.moveObj, {mousePos: this.mousePos, mouseOffset: Hinstance.mouseOffset})) {
           Hinstance.mouseOffset = {
             x: this.mousePos.x - Hinstance.moveObj.getStyle('left').toInt(),
             y: this.mousePos.y - Hinstance.moveObj.getStyle('top').toInt(),
@@ -2410,13 +2447,13 @@ window.$K = (function () {
         }
       }
       function _moveDrag() {
-        if (Hinstance.options.moveDrag.call(Hinstance.moveObj)) {
+        if (Hinstance.options.moveDrag.call(Hinstance.moveObj, {mousePos: this.mousePos, mouseOffset: Hinstance.mouseOffset})) {
           Hinstance.moveObj.style.top = (this.mousePos.y - Hinstance.mouseOffset.y) + 'px';
           Hinstance.moveObj.style.left = (this.mousePos.x - Hinstance.mouseOffset.x) + 'px';
         }
       }
       function _endDrag() {
-        Hinstance.options.endDrag.call(Hinstance.moveObj);
+        Hinstance.options.endDrag.call(Hinstance.moveObj, {mousePos: this.mousePos, mouseOffset: Hinstance.mouseOffset});
       }
       var o = {
         beginDrag: _beginDrag,
@@ -3404,7 +3441,7 @@ window.$K = (function () {
       };
       var _validateColor = function (e) {
         var key = GEvent.keyCode(e);
-        if (!((key > 36 && key < 41) || key == 8 || key == 9 || GEvent.isCtrlKey(e))) {
+        if (!((key > 36 && key < 41) || key == 8 || key == 9 || key == 13 || GEvent.isCtrlKey(e))) {
           var c = String.fromCharCode(key);
           var check = /[0-9a-fA-F]/;
           if (!check.test(c)) {
@@ -3416,9 +3453,10 @@ window.$K = (function () {
       this.input.addEvent('keypress', _validateColor);
       this.input.addEvent('keydown', function (e) {
         var key = GEvent.keyCode(e);
-        if (key == 38 && key == 40 || key == 32) {
+        if (key == 38 || key == 40 || key == 32) {
           self.createColors();
           self._draw();
+          self.ddcolor.firstChild.firstChild.focus();
           GEvent.stop(e);
         }
       });
@@ -3426,12 +3464,10 @@ window.$K = (function () {
         this.input.addEvent('keyup', function () {
           var value = this.value.toUpperCase();
           if (value != 'TRANSPARENT') {
-            this.value = '#' + value.replace('#', '').replace(/[^0-9A-F]+/, '');
-          }
-        });
-        this.input.addEvent('change', function () {
-          if (self.color_format.test(this.value)) {
-            self.color = this.value;
+            var c = value.replace('#', '').replace(/[^0-9A-F]+/, '');
+            if (c != '') {
+              this.value = '#' + c;
+            }
           }
         });
       } else {
@@ -3444,12 +3480,15 @@ window.$K = (function () {
         }
       });
       if (self.input.value) {
-        var color = '';
-        window.setInterval(function () {
-          if (self.input.value !== color && self.color_format.test(self.input.value)) {
-            color = self.input.value;
-            self.input.style.backgroundColor = color;
-            self.input.style.color = self.invertColor(color);
+        self.timer = window.setInterval(function () {
+          if (!$E(self.input)) {
+            window.clearInterval(self.timer);
+          } else if (self.input.value !== self.color && (self.input.value == '' || self.color_format.test(self.input.value))) {
+            self.color = self.input.value;
+            self.input.style.backgroundColor = self.color;
+            self.input.style.color = self.invertColor(self.color);
+            self.pickColor(self.color);
+            self.showDemo(self.color);
             self.input.callEvent('change');
           }
         }, 50);
@@ -3467,7 +3506,6 @@ window.$K = (function () {
       var l = Math.max(vpo.left + dm.width > document.viewport.getWidth() ? vpo.left + this.input.getWidth() - dm.width : vpo.left, document.viewport.getscrollLeft() + 5);
       this.ddcolor.style.left = l + 'px';
       this.ddcolor.style.display = 'block';
-      this.ddcolor.firstChild.firstChild.focus();
     },
     createColors: function () {
       var r = this.Colors.length / this.cols,
@@ -3507,6 +3545,7 @@ window.$K = (function () {
         } else if (key == 32) {
           if (r - z > 1) {
             self.pickColor(this.title);
+            $E('color_' + (self.cols - 1) + '_0').focus();
           }
           GEvent.stop(e);
         } else if (key == 27 || key == 9) {
@@ -3584,33 +3623,36 @@ window.$K = (function () {
       this.input.focus();
     },
     pickColor: function (c) {
-      var n,
-        c = new Color(c),
-        rgb = c.toArray(),
-        m = Math.min(rgb[0], rgb[1], rgb[2]),
-        o = Math.floor((255 - m) / this.cols);
-      forEach(this.customColor.elems('a'), function (item, index) {
-        n = c.lighten(o * index);
-        item.title = n.toString();
-        item.style.backgroundColor = n.toString();
-        item.style.color = n.invert().toString();
-      });
-      $E('color_' + (this.cols - 1) + '_0').focus();
+      if (this.customColor) {
+        var n,
+          c = new Color(c),
+          rgb = c.toArray(),
+          m = Math.min(rgb[0], rgb[1], rgb[2]),
+          o = Math.floor((255 - m) / this.cols);
+        forEach(this.customColor.elems('a'), function (item, index) {
+          n = c.lighten(o * index);
+          item.title = n.toString();
+          item.style.backgroundColor = n.toString();
+          item.style.color = n.invert().toString();
+        });
+      }
     },
     showDemo: function (c) {
-      var a;
-      if (c == 'Transparent') {
-        c = 'transparent';
-        a = trans('Transparent');
-      } else if (c == 'Clear') {
-        c = 'transparent';
-        a = trans('Remove Color');
-      } else {
-        a = c;
+      if (this.demoColor) {
+        var a;
+        if (c == 'Transparent') {
+          c = 'transparent';
+          a = trans('Transparent');
+        } else if (c == 'Clear') {
+          c = 'transparent';
+          a = trans('Remove Color');
+        } else {
+          a = c;
+        }
+        this.demoColor.style.backgroundColor = c;
+        this.demoColor.innerHTML = a;
+        this.demoColor.style.color = this.invertColor(c);
       }
-      this.demoColor.style.backgroundColor = c;
-      this.demoColor.innerHTML = a;
-      this.demoColor.style.color = this.invertColor(c);
     },
     setColor: function (c) {
       if (c != '' && c != this.color && this.color_format.test(c)) {

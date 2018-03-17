@@ -33,58 +33,63 @@ class Model extends \Kotchasan\Model
     // session, token
     if ($request->initSession() && $request->isSafe()) {
       $ret = array();
-      // รับค่าจากการ POST
-      $save = array(
-        'username' => $request->post('register_email')->url(),
-        'name' => $request->post('register_name')->topic(),
-      );
-      // ชื่อตาราง user
-      $table = $this->getTableName('user');
-      // database connection
-      $db = $this->db();
-      // username
-      if (empty($save['username'])) {
-        $ret['ret_register_email'] = 'Please fill in';
-      } elseif (!Validator::email($save['username'])) {
-        $ret['ret_register_email'] = Language::replace('Incorrect :name', array(':name' => Language::get('Email')));
-      } else {
-        // ตรวจสอบ username ซ้ำ
-        $search = $db->first($table, array('username', $save['username']));
-        if ($search) {
-          $ret['ret_register_email'] = Language::replace('This :name already exist', array(':name' => Language::get('Email')));
-        }
-      }
-      // password
-      $password = $request->post('register_password')->topic();
-      if (mb_strlen($password) < 4) {
-        // รหัสผ่านต้องไม่น้อยกว่า 4 ตัวอักษร
-        $ret['ret_register_password'] = 'Please fill in';
-      } else {
-        $save['salt'] = uniqid();
-        $save['password'] = sha1($password.$save['salt']);
-      }
-      // name
-      if (empty($save['name'])) {
-        $ret['ret_register_name'] = 'Please fill in';
-      }
-      if (empty($ret)) {
-        // บันทึก user
-        $save['create_date'] = time();
-        $save['status'] = 0;
-        $save['fb'] = 0;
-        $id = $db->insert($table, $save);
-        // ส่งอีเมล์
-        $replace = array(
-          '/%NAME%/' => $save['name'],
-          '/%EMAIL%/' => $save['username'],
-          '/%PASSWORD%/' => $password
+      if (self::$cfg->demo_mode == false) {
+        // รับค่าจากการ POST
+        $save = array(
+          'username' => $request->post('register_email')->url(),
+          'name' => $request->post('register_name')->topic(),
         );
-        Email::send(2, 'member', $replace, $save['username']);
-        // คืนค่า
-        $ret['alert'] = Language::replace('Register successfully, We have sent complete registration information to :email', array(':email' => $save['username']));
-        $ret['location'] = 'index.php?action=login';
-        // clear
-        $request->removeToken();
+        // ชื่อตาราง user
+        $table = $this->getTableName('user');
+        // database connection
+        $db = $this->db();
+        // username
+        if (empty($save['username'])) {
+          $ret['ret_register_email'] = 'Please fill in';
+        } elseif (!Validator::email($save['username'])) {
+          $ret['ret_register_email'] = Language::replace('Incorrect :name', array(':name' => Language::get('Email')));
+        } else {
+          // ตรวจสอบ username ซ้ำ
+          $search = $db->first($table, array('username', $save['username']));
+          if ($search) {
+            $ret['ret_register_email'] = Language::replace('This :name already exist', array(':name' => Language::get('Email')));
+          }
+        }
+        // password
+        $password = $request->post('register_password')->password();
+        if (mb_strlen($password) < 4) {
+          // รหัสผ่านต้องไม่น้อยกว่า 4 ตัวอักษร
+          $ret['ret_register_password'] = 'Please fill in';
+        } else {
+          $save['salt'] = uniqid();
+          $save['password'] = sha1($password.$save['salt']);
+        }
+        // name
+        if (empty($save['name'])) {
+          $ret['ret_register_name'] = 'Please fill in';
+        }
+        if (empty($ret)) {
+          // บันทึก user
+          $save['create_date'] = time();
+          $save['status'] = 0;
+          $save['fb'] = 0;
+          $id = $db->insert($table, $save);
+          // ส่งอีเมล์
+          $replace = array(
+            '/%NAME%/' => $save['name'],
+            '/%EMAIL%/' => $save['username'],
+            '/%PASSWORD%/' => $password
+          );
+          Email::send(2, 'member', $replace, $save['username']);
+          // คืนค่า
+          $ret['alert'] = Language::replace('Register successfully, We have sent complete registration information to :email', array(':email' => $save['username']));
+          $ret['location'] = 'index.php?action=login';
+          // clear
+          $request->removeToken();
+        }
+      } else {
+        // โหมดตัวอย่าง ไม่สามารถ register ได้
+        $ret['alert'] = Language::get('Unable to complete the transaction');
       }
       // คืนค่าเป็น JSON
       if (!empty($ret)) {
