@@ -24,25 +24,21 @@ class Model extends \Kotchasan\Model
 {
 
   /**
-   * module=register
+   * บันทึกข้อมูล (register.php)
    *
    * @param Request $request
    */
   public function submit(Request $request)
   {
+    $ret = array();
     // session, token
     if ($request->initSession() && $request->isSafe()) {
-      $ret = array();
       if (self::$cfg->demo_mode == false) {
         // รับค่าจากการ POST
         $save = array(
           'username' => $request->post('register_email')->url(),
           'name' => $request->post('register_name')->topic(),
         );
-        // ชื่อตาราง user
-        $table = $this->getTableName('user');
-        // database connection
-        $db = $this->db();
         // username
         if (empty($save['username'])) {
           $ret['ret_register_email'] = 'Please fill in';
@@ -50,10 +46,14 @@ class Model extends \Kotchasan\Model
           $ret['ret_register_email'] = Language::replace('Incorrect :name', array(':name' => Language::get('Email')));
         } else {
           // ตรวจสอบ username ซ้ำ
-          $search = $db->first($table, array('username', $save['username']));
+          $search = $this->db()->first($this->getTableName('user'), array('username', $save['username']));
           if ($search) {
             $ret['ret_register_email'] = Language::replace('This :name already exist', array(':name' => Language::get('Email')));
           }
+        }
+        // name
+        if (empty($save['name'])) {
+          $ret['ret_register_name'] = 'Please fill in';
         }
         // password
         $password = $request->post('register_password')->password();
@@ -61,19 +61,12 @@ class Model extends \Kotchasan\Model
           // รหัสผ่านต้องไม่น้อยกว่า 4 ตัวอักษร
           $ret['ret_register_password'] = 'Please fill in';
         } else {
-          $save['salt'] = uniqid();
-          $save['password'] = sha1($password.$save['salt']);
-        }
-        // name
-        if (empty($save['name'])) {
-          $ret['ret_register_name'] = 'Please fill in';
+          $save['password'] = $password;
         }
         if (empty($ret)) {
-          // บันทึก user
-          $save['create_date'] = time();
-          $save['status'] = 0;
+          // ลงทะเบียนสมาชิกใหม่
           $save['fb'] = 0;
-          $id = $db->insert($table, $save);
+          self::execute($this, $save);
           // ส่งอีเมล์
           $replace = array(
             '/%NAME%/' => $save['name'],
@@ -91,10 +84,34 @@ class Model extends \Kotchasan\Model
         // โหมดตัวอย่าง ไม่สามารถ register ได้
         $ret['alert'] = Language::get('Unable to complete the transaction');
       }
-      // คืนค่าเป็น JSON
-      if (!empty($ret)) {
-        echo json_encode($ret);
-      }
     }
+    // คืนค่าเป็น JSON
+    if (!empty($ret)) {
+      echo json_encode($ret);
+    }
+  }
+
+  /**
+   * ลงทะเบียนสมาชิกใหม่
+   *
+   * @param Model $model
+   * @param array $save ข้อมูลสมาชิก
+   * @return array คืนค่าแอเรย์ของข้อมูลสมาชิกใหม่
+   */
+  public static function execute($model, $save)
+  {
+    if (!isset($save['username'])) {
+      $save['username'] = '';
+    }
+    if (!isset($save['password'])) {
+      $save['password'] = '';
+    } else {
+      $save['salt'] = uniqid();
+      $save['password'] = sha1($save['password'].$save['salt']);
+    }
+    $save['create_date'] = time();
+    // บันทึกลงฐานข้อมูล
+    $save['id'] = $model->db()->insert($model->getTableName('user'), $save);
+    return $save;
   }
 }

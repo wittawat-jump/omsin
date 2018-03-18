@@ -50,13 +50,11 @@ class Model extends \Kotchasan\Model
             'username' => $username,
             'password' => $password,
             'name' => $name,
-            'email' => $request->post('email')->url(),
             'fb' => 1,
             'visited' => 1,
             'lastvisited' => time(),
-            'status' => 0,
-            'website' => $website
-            ), $permissions);
+            'status' => 0
+        ));
         if ($save === null) {
           // ไม่สามารถบันทึก owner ได้
           $ret['alert'] = Language::get('Unable to complete the transaction');
