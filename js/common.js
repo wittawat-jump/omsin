@@ -202,7 +202,11 @@ var dataTableActionCallback = function (xhr) {
       val = ds[prop];
       if (prop == 'location') {
         if (val == 'reload') {
-          loader.reload();
+          if (loader) {
+            loader.reload();
+          } else {
+            window.location.reload();
+          }
         } else {
           window.location = val;
         }
@@ -247,18 +251,6 @@ function checkUsername() {
   if (value == '') {
     this.invalid(this.title);
   } else if (patt.test(value)) {
-    return 'value=' + encodeURIComponent(value) + id;
-  } else {
-    this.invalid(this.title);
-  }
-}
-function checkEmail() {
-  var value = this.value;
-  var ids = this.id.split('_');
-  var id = '&id=' + floatval($E(ids[0] + '_id').value);
-  if (value == '') {
-    this.invalid(this.title);
-  } else if (/^[_\.0-9a-zA-Z-]+@([0-9a-zA-Z][0-9a-zA-Z-]+\.)+[a-zA-Z]{2,6}$/.test(value)) {
     return 'value=' + encodeURIComponent(value) + id;
   } else {
     this.invalid(this.title);
@@ -345,67 +337,21 @@ function initSystem() {
   new Clock('local_time');
   new Clock('server_time');
 }
-function reload() {
-  window.location = replaceURL(new Date().getTime());
-}
-function _doCheckKey(input, e, patt) {
-  var val = input.value;
-  var key = GEvent.keyCode(e);
-  if (!((key > 36 && key < 41) || key == 8 || key == 9 || key == 13 || GEvent.isCtrlKey(e))) {
-    val = String.fromCharCode(key);
-    if (val !== '' && !patt.test(val)) {
-      GEvent.stop(e);
-      return false;
-    }
-  }
-  return true;
-}
-var numberOnly = function (e) {
-  return _doCheckKey(this, e, /[0-9]/);
-};
-var integerOnly = function (e) {
-  return _doCheckKey(this, e, /[0-9\-]/);
-};
-var currencyOnly = function (e) {
-  return _doCheckKey(this, e, /[0-9\.]/);
-};
-function countryChanged(prefix) {
-  var _contryChanged = function () {
-    if (this.value != 'TH') {
-      $G($E(prefix + '_provinceID').parentNode.parentNode).addClass('hidden');
-      $G($E(prefix + '_province').parentNode.parentNode).removeClass('hidden');
-    } else {
-      $G($E(prefix + '_provinceID').parentNode.parentNode).removeClass('hidden');
-      $G($E(prefix + '_province').parentNode.parentNode).addClass('hidden');
-    }
-  };
-  if ($E(prefix + '_country')) {
-    $G(prefix + '_country').addEvent('change', _contryChanged);
-    _contryChanged.call($E(prefix + '_country'));
-  }
-}
 function selectMenu(module) {
-  if ($E('topmenu')) {
-    var tmp = false;
-    forEach($E('topmenu').getElementsByTagName('li'), function (item, index) {
-      var cs = new Array();
-      if (index == 0) {
-        tmp = item;
-      }
-      forEach(this.className.split(' '), function (c) {
-        if (c == module) {
-          tmp = false;
-          cs.push(c + ' select');
-        } else if (c !== '' && c != 'select' && c != 'default') {
-          cs.push(c);
-        }
-      });
-      this.className = cs.join(' ');
-    });
-    if (tmp) {
-      $G(tmp).addClass('default');
+  forEach(document.querySelectorAll('#topmenu > ul > li'), function () {
+    if ($G(this).hasClass(module)) {
+      this.addClass('select');
+    } else {
+      this.removeClass('select');
     }
-  }
+  });
+  forEach(document.querySelectorAll('.sidemenu > ul > li'), function () {
+    if ($G(this).hasClass(module)) {
+      this.addClass('select');
+    } else {
+      this.removeClass('select');
+    }
+  });
 }
 function loadJavascript(id, src) {
   var js, fjs = document.getElementsByTagName('script')[0];
@@ -546,25 +492,12 @@ function initLanguageTable(id) {
     }
   });
 }
-function validateKeyPress(input, e, patt) {
-  var val = input.value;
-  var key = GEvent.keyCode(e);
-  if (!((key > 36 && key < 41) || key == 8 || key == 9 || key == 13 || GEvent.isCtrlKey(e))) {
-    val = String.fromCharCode(key);
-    if (val !== '' && !patt.test(val)) {
-      GEvent.stop(e);
-      return false;
-    }
-  }
-  return true;
-}
 function initFirstRowNumberOnly(tr) {
-  var doKeyPress = function (e) {
-    return validateKeyPress(this, e, /[0-9]+/);
-  };
   forEach($G(tr).elems('input'), function (item, index) {
     if (index == 0) {
-      $G(item).addEvent('keypress', doKeyPress);
+      new GMask(item, function () {
+        return /^[0-9]+$/.test(this.value);
+      });
     }
   });
 }
@@ -652,6 +585,7 @@ function initWeb(module) {
           loader.init(content);
           content.replaceClass('loading', 'animation');
           content.Ready(function () {
+            $K.init(content);
             value.evalScript();
           });
         } else if (prop == 'topic') {
@@ -679,7 +613,20 @@ function initWeb(module) {
   });
   loader.initLoading('wait', false);
   loader.init(document);
+  $K.init(document.body);
 }
 if (navigator.userAgent.match(/(iPhone|iPod|iPad)/i)) {
   document.addEventListener("touchstart", function () {}, false);
+}
+function checkEmail() {
+  var value = this.value;
+  var ids = this.id.split('_');
+  var id = '&id=' + floatval($E(ids[0] + '_id').value);
+  if (value == '') {
+    this.invalid(this.title);
+  } else if (/^[_\.0-9a-zA-Z-]+@([0-9a-zA-Z][0-9a-zA-Z-]+\.)+[a-zA-Z]{2,6}$/.test(value)) {
+    return 'value=' + encodeURIComponent(value) + id;
+  } else {
+    this.invalid(this.title);
+  }
 }
