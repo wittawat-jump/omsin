@@ -39,8 +39,7 @@ class View extends \Kotchasan\View
       '/{EMAIL}/' => Login::$login_params['username'],
       '/{PASSWORD}/' => Login::$login_params['password'],
       '/{MESSAGE}/' => Login::$login_message,
-      '/{CLASS}/' => empty(Login::$login_message) ? 'hidden' : (empty(Login::$login_input) ? 'message' : 'error'),
-      '/<REGISTER>(.*)<\/REGISTER>/isu' => self::$cfg->demo_mode ? '' : '\\1'
+      '/{CLASS}/' => empty(Login::$login_message) ? 'hidden' : (empty(Login::$login_input) ? 'message' : 'error')
     ));
     return (object)array(
         'content' => $template->render(),
@@ -62,8 +61,7 @@ class View extends \Kotchasan\View
       '/{TOKEN}/' => $request->createToken(),
       '/{EMAIL}/' => Login::$login_params['username'],
       '/{MESSAGE}/' => Login::$login_message,
-      '/{CLASS}/' => empty(Login::$login_message) ? 'hidden' : (empty(Login::$login_input) ? 'message' : 'error'),
-      '/<REGISTER>(.*)<\/REGISTER>/isu' => self::$cfg->demo_mode ? '' : '\\1'
+      '/{CLASS}/' => empty(Login::$login_message) ? 'hidden' : (empty(Login::$login_input) ? 'message' : 'error')
     ));
     return (object)array(
         'content' => $template->render(),

@@ -108,6 +108,16 @@ class View extends \Gcms\View
       /* ตั้งค่าการกระทำของของตัวเลือกต่างๆ ด้านล่างตาราง ซึ่งจะใช้ร่วมกับการขีดถูกเลือกแถว */
       'action' => 'index.php/index/model/iereport/action',
       'actionCallback' => 'dataTableActionCallback',
+      'actions' => array(
+        array(
+          'id' => 'action',
+          'class' => 'ok',
+          'text' => '{LNG_With selected}',
+          'options' => array(
+            'delete' => '{LNG_Delete}'
+          )
+        )
+      ),
       /* ส่วนหัวของตาราง และการเรียงลำดับ (thead) */
       'headers' => array(
         'create_date' => array(
