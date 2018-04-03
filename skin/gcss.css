@@ -2439,18 +2439,20 @@ input.gddcolor.invalid {
 .input-groups > :first-child {
   padding-left: 0;
 }
+.input-groups > .row > .wlabel > span,
+.input-groups-table > .row > .wlabel > span,
 .input-groups > .rowgroup > [class*="width"] > label,
 .input-groups-table > .rowgroup > [class*="width"] > label,
-.input-groups > .row > label,
-.input-groups-table > .row > label,
+.input-groups > .row label,
+.input-groups-table > .row label,
 .input-groups > .row > span,
 .input-groups-table > .row > span {
   display: table-cell;
 }
-.input-groups > .rowgroup > [class*="width"] > label,
-.input-groups-table > .rowgroup > [class*="width"] > label,
-.input-groups > .row > label,
-.input-groups-table > .row > label {
+.input-groups > .rowgroup > [class*="width"] label,
+.input-groups-table > .rowgroup > [class*="width"] label,
+.input-groups > .row label,
+.input-groups-table > .row label {
   padding-right: 5px;
 }
 .width5 {
