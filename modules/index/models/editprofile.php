@@ -85,7 +85,7 @@ class Model extends \Kotchasan\Model
         $db = $model->db();
         // แอดมิน
         $isAdmin = Login::isAdmin();
-        // ไม่ใช่แอดมิน ใช้อีเมล์เดิมจากฐานข้อมูล
+        // ไม่ใช่แอดมิน ใช้อีเมลเดิมจากฐานข้อมูล
         if (!$isAdmin && $index['id'] > 0) {
           $save['username'] = $index['username'];
         }

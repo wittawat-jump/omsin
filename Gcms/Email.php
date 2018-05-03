@@ -28,7 +28,7 @@ class Email extends \Kotchasan\Email
    * @param int $id ID ของจดหมายที่ต้องการส่ง
    * @param string $module ชื่อโมดูลของจดหมายที่ต้องการส่ง
    * @param array $datas ข้อมูลที่จะถูกแทนที่ลงในจดหมาย ในรูป 'ตัวแปร'=>'ข้อความ'
-   * @param string $to ที่อยู่อีเมล์ผู้รับ  คั่นแต่ละรายชื่อด้วย ,
+   * @param string $to ที่อยู่อีเมลผู้รับ  คั่นแต่ละรายชื่อด้วย ,
    * @return \static
    */
   public static function send($id, $module, $datas, $to)
@@ -49,7 +49,7 @@ class Email extends \Kotchasan\Email
     } else {
       // ผู้ส่ง
       $from = empty($email['from_email']) ? self::$cfg->noreply_email : $email['from_email'];
-      // ข้อความในอีเมล์
+      // ข้อความในอีเมล
       $replace = ArrayTool::replace(array(
           '/%WEBTITLE%/' => strip_tags(self::$cfg->web_title),
           '/%WEBURL%/' => WEB_URL,
@@ -63,7 +63,7 @@ class Email extends \Kotchasan\Email
       if (!empty($email['copy_to'])) {
         $to[] = $email['copy_to'];
       }
-      // ส่งอีเมล์
+      // ส่งอีเมล
       return parent::send(implode(',', $to), $from, $subject, $msg);
     }
   }

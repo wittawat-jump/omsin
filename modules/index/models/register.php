@@ -67,7 +67,7 @@ class Model extends \Kotchasan\Model
           // ลงทะเบียนสมาชิกใหม่
           $save['fb'] = 0;
           self::execute($this, $save);
-          // ส่งอีเมล์
+          // ส่งอีเมล
           $replace = array(
             '/%NAME%/' => $save['name'],
             '/%EMAIL%/' => $save['username'],
