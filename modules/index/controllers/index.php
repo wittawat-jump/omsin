@@ -86,7 +86,7 @@ class Controller extends \Gcms\Controller
             $bg_image = '';
         }
         if (is_file(ROOT_PATH.self::$cfg->skin.'/logo.png')) {
-            $logo = '<img src="'.WEB_URL.self::$cfg->skin.'/logo.png" alt="{WEBTITLE}">';
+            $logo = '<img src="'.WEB_URL.self::$cfg->skin.'/logo.png" alt="{WEBTITLE}">&nbsp;{WEBTITLE}';
         } else {
             $logo = '<span class="icon-office">{WEBTITLE}</span>';
         }
