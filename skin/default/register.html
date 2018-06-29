@@ -1,20 +1,35 @@
 <article id=login_div>
   <h1>
-    <a href="{WEBURL}index.php" id=logo><img src="{WEBURL}{SKIN}img/title.png" alt="{WEBTITLE}"> {WEBTITLE}</a>
+    <a href="{WEBURL}index.php" id=logo title="{WEBTITLE}">{LOGO}</a>
   </h1>
-  <form id=register_frm method=post autocomplete=off>
-    <h2 class="icon-register">{LNG_Register}</h2>
+  <form id=register_frm method=post autocomplete=off action="{WEBURL}index.php">
+    <h2 class="table fullwidth">
+      <span class="td icon-register">{LNG_Register}</span>
+    </h2>
     <fieldset>
-      <p><label class="g-input icon-email"><input type=text name=register_email id=register_email maxlength=255 placeholder="{LNG_Email}"></label></p>
-      <p><label class="g-input icon-password"><input type=password name=register_password id=register_password maxlength=10 placeholder="{LNG_Password}"></label></p>
-      <p><label class="g-input icon-user"><input type=text name=register_name id=register_name maxlength=150 placeholder="{LNG_Name}"></label></p>
+      <p>
+        <label class="g-input icon-email">
+          <input type=text name=register_email id=register_email maxlength=255 placeholder="{LNG_Email}">
+        </label>
+      </p>
+      <p>
+        <label class="g-input icon-password">
+          <input type=password name=register_password id=register_password maxlength=10 placeholder="{LNG_Password}">
+        </label>
+      </p>
+      <p>
+        <label class="g-input icon-user">
+          <input type=text name=register_name id=register_name maxlength=150 placeholder="{LNG_Name}">
+        </label>
+      </p>
     </fieldset>
     <fieldset>
       <button type=submit class="button login wide" id="register_submit">{LNG_Register}</button>
       <input type="hidden" name="token" id="token" value="{TOKEN}">
     </fieldset>
     <fieldset class="center">
-      <a href="index.php?action=login">{LNG_Login with an existing account}</a>
+      <a href="index.php?action=login">{LNG_Sign in}</a>&nbsp;/&nbsp;
+      <a href="index.php?action=forgot">{LNG_Forgot}</a>
     </fieldset>
   </form>
   <script>

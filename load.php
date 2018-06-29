@@ -1,18 +1,20 @@
 <?php
 /**
- * load.php
+ * load.php.
  *
  * @author Goragod Wiriya <admin@goragod.com>
- * @link http://www.kotchasan.com/
+ *
+ * @see http://www.kotchasan.com/
+ *
  * @copyright 2016 Goragod.com
  * @license http://www.kotchasan.com/license/
  */
-/*
- * Site root
+/**
+ * Site root.
  */
 define('ROOT_PATH', str_replace('\\', '/', dirname(__FILE__)).'/');
 /*
- * ไดเร็คทอรี่เก็บไฟล์ของ user
+ * โฟลเดอร์เก็บข้อมูล
  */
 define('DATA_FOLDER', 'datas/');
 /*
@@ -26,7 +28,11 @@ define('DEBUG', 0);
  * true บันทึกการ query ฐานข้อมูลลง log (ใช้เฉพาะตอนออกแบบเท่านั้น)
  */
 define('DB_LOG', false);
+/*
+ * ภาษาอัตโนมัติจากบราวเซอร์
+ */
+define('AUTO_LANGUAGE', false);
 /**
- * load Kotchasan
+ * load Kotchasan.
  */
 include 'Kotchasan/load.php';
