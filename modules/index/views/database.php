@@ -2,10 +2,10 @@
 /**
  * @filesource modules/index/views/database.php
  *
- * @see http://www.kotchasan.com/
- *
  * @copyright 2016 Goragod.com
  * @license http://www.kotchasan.com/license/
+ *
+ * @see http://www.kotchasan.com/
  */
 
 namespace Index\Database;
@@ -95,6 +95,7 @@ class View extends \Gcms\View
         // Javascript
         $form->script('callClick("database_reset", doDatabaseReset);');
         // คืนค่าฟอร์ม
+
         return $form->render();
     }
 }

@@ -2,10 +2,10 @@
 /**
  * @filesource modules/index/views/iedaily.php
  *
- * @see http://www.kotchasan.com/
- *
  * @copyright 2016 Goragod.com
  * @license http://www.kotchasan.com/license/
+ *
+ * @see http://www.kotchasan.com/
  */
 
 namespace Index\Iedaily;
@@ -23,8 +23,17 @@ use Kotchasan\Http\Request;
  */
 class View extends \Gcms\View
 {
+    /**
+     * @var mixed
+     */
     private $wallet;
+    /**
+     * @var mixed
+     */
     private $categories;
+    /**
+     * @var int
+     */
     private $total = 0;
 
     /**

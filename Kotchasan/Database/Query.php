@@ -2,10 +2,10 @@
 /**
  * @filesource Kotchasan/Database/Query.php
  *
- * @see http://www.kotchasan.com/
- *
  * @copyright 2016 Goragod.com
  * @license http://www.kotchasan.com/license/
+ *
+ * @see http://www.kotchasan.com/
  */
 
 namespace Kotchasan\Database;
@@ -22,12 +22,6 @@ use Kotchasan\ArrayTool;
 abstract class Query extends \Kotchasan\Database\Db
 {
     /**
-     * ตัวแปรเก็บคำสั่ง SQL.
-     *
-     * @var array
-     */
-    protected $sqls;
-    /**
      * true แสดง Query ออกทางหน่าจอก่อนการ execute.
      *
      * @var bool
@@ -35,43 +29,51 @@ abstract class Query extends \Kotchasan\Database\Db
     protected $debugger = false;
 
     /**
-     * ฟังก์ชั่นสำหรับจัดกลุ่มคำสั่ง และ เชื่อมแต่ละกลุ่มด้วย AND.
+     * ตัวแปรเก็บคำสั่ง SQL.
      *
-     * @param array $params คำสั่ง รูปแบบ array('field1', 'condition', 'field2')
-     *
-     * @return Sql
+     * @var array
      */
-    protected function groupAnd($params)
-    {
-        if (func_num_args() > 1) {
-            $params = func_get_args();
-        }
-        $sqls = array();
-        foreach ($params as $i => $item) {
-            $sqls[] = $this->buildValue($item);
-        }
+    protected $sqls;
 
-        return Sql::create('('.implode(' AND ', $sqls).')');
+    /**
+     * คำสั่งสำหรับแสดง Query ออกทางหน้าจอ
+     * ใช้ในการ debug Query.
+     */
+    public function debug()
+    {
+        echo '<pre>'.$this->text().'</pre>';
+
+        return $this;
     }
 
     /**
-     * ฟังก์ชั่นสำหรับจัดกลุ่มคำสั่ง และ เชื่อมแต่ละกลุ่มด้วย OR.
+     * ฟังก์ชั่นอ่านชื่อตารางจากการตั้งค่าฐานข้อมุล
+     * คืนค่า ชื่อตารางรวม prefix ถ้าไม่มีชื่อกำหนดไว้ จะคืนค่า $table ครอบชื่อตารางด้วย ``.
      *
-     * @param array $params คำสั่ง รูปแบบ array('field1', 'condition', 'field2')
+     * @param string $table ชื่อตารางตามที่กำหนดใน settings/datasbase.php
      *
-     * @return Sql
+     * @return string
      */
-    protected function groupOr($params)
+    public function getFullTableName($table)
     {
-        if (func_num_args() > 1) {
-            $params = func_get_args();
-        }
-        $sqls = array();
-        foreach ($params as $i => $item) {
-            $sqls[] = $this->buildValue($item);
-        }
+        $dbname = empty($this->db->settings->dbname) ? '' : '`'.$this->db->settings->dbname.'`.';
 
-        return Sql::create('('.implode(' OR ', $sqls).')');
+        return $dbname.'`'.$this->getTableName($table).'`';
+    }
+
+    /**
+     * ฟังก์ชั่นอ่านชื่อตารางจากการตั้งค่าฐานข้อมุล
+     * คืนค่า ชื่อตารางรวม prefix ถ้าไม่มีชื่อกำหนดไว้ จะคืนค่า $table.
+     *
+     * @param string $table ชื่อตารางตามที่กำหนดใน settings/datasbase.php
+     *
+     * @return string
+     */
+    public function getTableName($table)
+    {
+        $prefix = empty($this->db->settings->prefix) ? '' : $this->db->settings->prefix.'_';
+
+        return $prefix.(isset($this->db->tables->$table) ? $this->db->tables->$table : $table);
     }
 
     /**
@@ -94,68 +96,89 @@ abstract class Query extends \Kotchasan\Database\Db
     }
 
     /**
-     * คำสั่งสำหรับแสดง Query ออกทางหน้าจอ
-     * ใช้ในการ debug Query.
-     */
-    public function debug()
-    {
-        echo '<pre>'.$this->text().'</pre>';
-
-        return $this;
-    }
-
-    /**
-     * ฟังก์ชั่นอ่านชื่อตารางและชื่อรอง และใส่ ` ครอบชื่อตารางด้วย.
+     * ฟังก์ชั่นสร้างคีย์ สำหรับการ execute.
      *
-     * @param string $table ชื่อตารางตามที่กำหนดใน settings/datasbase.php
+     * @param string $name   ชื่อฟิลด์
+     * @param string $prefix คำนำหน้าชื่อฟิลด์ ใช้เพื่อป้องกันการใช้ตัวแปรซ้ำ
      *
      * @return string
      */
-    protected function quoteTableName($table)
+    protected function aliasName($name, $prefix = '')
     {
-        if (is_array($table)) {
-            if ($table[0] instanceof QueryBuilder) {
-                $table = '('.$table[0]->text().') AS '.$table[1];
-            } else {
-                $table = '('.$table[0].') AS '.$table[1];
-            }
-        } elseif (preg_match('/^([a-zA-Z0-9_]+)(\s+(as|AS))?[\s]+([A-Z0-9]{1,2})$/', $table, $match)) {
-            $table = $this->getFullTableName($match[1]).' AS '.$match[4];
-        } elseif (preg_match('/^([a-zA-Z0-9_]+)(\s+(as|AS))?[\s]+([a-zA-Z0-9]+)$/', $table, $match)) {
-            $table = $this->getFullTableName($match[1]).' AS `'.$match[4].'`';
-        } else {
-            $table = $this->getFullTableName($table);
+        return ':'.$prefix.trim(preg_replace('/[`\._\-]/', '', $name));
+    }
+
+    /**
+     * สร้าง query สำหรับ GROUP BY.
+     *
+     * @param array|string $fields array('U.id', 'U.username') หรือ string U.id
+     *
+     * @return string
+     */
+    protected function buildGroup($fields)
+    {
+        $sqls = array();
+        foreach ((array) $fields as $item) {
+            $sqls[] = $this->fieldName($item);
         }
 
-        return $table;
+        return empty($sqls) ? '' : implode(', ', $sqls);
     }
 
     /**
-     * ฟังก์ชั่นอ่านชื่อตารางจากการตั้งค่าฐานข้อมุล.
+     * สร้างคำสั่ง JOIN
+     * ถ้าไม่มี alias คืนค่าว่าง.
      *
-     * @param string $table ชื่อตารางตามที่กำหนดใน settings/datasbase.php
+     * @param string|array $table ชื่อตารางต้องมี alias ด้วย หรือ (QueryBuilder, alias)
+     * @param string       $type  เข่น INNER OUTER LEFT RIGHT
+     * @param mixed        $on    query string หรือ array
      *
-     * @return string ชื่อตารางรวม prefix ถ้าไม่มีชื่อกำหนดไว้ จะคืนค่า $table ครอบชื่อตารางด้วย ``
+     * @return string
      */
-    public function getFullTableName($table)
+    protected function buildJoin($table, $type, $on)
     {
-        $dbname = empty($this->db->settings->dbname) ? '' : '`'.$this->db->settings->dbname.'`.';
-
-        return $dbname.'`'.$this->getTableName($table).'`';
+        $ret = $this->buildWhere($on);
+        $sql = is_array($ret) ? $ret[0] : $ret;
+        if (is_array($table)) {
+            $sql = ' '.$type.' JOIN ('.$table[0]->text().') AS '.$table[1].' ON '.$sql;
+        } elseif (preg_match('/^([a-zA-Z0-9_]+)([\s]+(as|AS))?[\s]+([A-Z0-9]{1,2})$/', $table, $match)) {
+            $sql = ' '.$type.' JOIN '.$this->getFullTableName($match[1]).' AS '.$match[4].' ON '.$sql;
+        } elseif (preg_match('/^([a-z0-9_]+)([\s]+as)?[\s]+([a-z0-9_]+)$/i', $table, $match)) {
+            $sql = ' '.$type.' JOIN '.$this->getFullTableName($match[1]).' AS `'.$match[3].'` ON '.$sql;
+        } else {
+            $sql = ' '.$type.' JOIN '.$table.' ON '.$sql;
+        }
+        if (is_array($ret)) {
+            return array($sql, $ret[1]);
+        } else {
+            return $sql;
+        }
     }
 
     /**
-     * ฟังก์ชั่นอ่านชื่อตารางจากการตั้งค่าฐานข้อมุล.
+     * สร้าง query เรียงลำดับ.
      *
-     * @param string $table ชื่อตารางตามที่กำหนดใน settings/datasbase.php
+     * @param array|string $fields array('field ASC','field DESC') หรือ 'field ASC', 'field DESC', ....
      *
-     * @return string ชื่อตารางรวม prefix ถ้าไม่มีชื่อกำหนดไว้ จะคืนค่า $table
+     * @return string
      */
-    public function getTableName($table)
+    protected function buildOrder($fields)
     {
-        $prefix = empty($this->db->settings->prefix) ? '' : $this->db->settings->prefix.'_';
+        $sqls = array();
+        foreach ((array) $fields as $item) {
+            if (preg_match('/^([A-Z0-9]{1,2}\.)([a-z0-9_]+)([\s]{1,}(ASC|DESC))?$/i', $item, $match)) {
+                // U.id DESC
+                $sqls[] = $match[1].'`'.$match[2].'`'.(isset($match[4]) ? " $match[4]" : '');
+            } elseif (preg_match('/^([a-z0-9_]+)(\.([a-z0-9_]+))?(([\s]+)?(ASC|DESC))?$/i', $item, $match)) {
+                // field.id DESC
+                $sqls[] = '`'.$match[1].'`'.(empty($match[3]) ? '' : '.`'.$match[3].'`').(isset($match[6]) ? " $match[6]" : '');
+            } elseif (strtoupper($item) === 'RAND()') {
+                // RAND()
+                $sqls[] = 'RAND()';
+            }
+        }
 
-        return $prefix.(isset($this->db->tables->$table) ? $this->db->tables->$table : $table);
+        return implode(', ', $sqls);
     }
 
     /**
@@ -214,88 +237,161 @@ abstract class Query extends \Kotchasan\Database\Db
     }
 
     /**
-     * สร้างคำสั่ง JOIN.
+     * แปลงข้อมูลรูปแบบ SQL
+     * รูปแบบ array('field1', 'condition', 'field2')
+     * ไม่ระบุ condition หมายถึง = หรือ IN.
      *
-     * @param string|array $table ชื่อตารางต้องมี alias ด้วย หรือ (QueryBuilder, alias)
-     * @param string       $type  เข่น INNER OUTER LEFT RIGHT
-     * @param mixed        $on    query string หรือ array
-     *
-     * @return string ถ้าไม่มี alias คืนค่าว่าง
-     */
-    protected function buildJoin($table, $type, $on)
-    {
-        $ret = $this->buildWhere($on);
-        $sql = is_array($ret) ? $ret[0] : $ret;
-        if (is_array($table)) {
-            $sql = ' '.$type.' JOIN ('.$table[0]->text().') AS '.$table[1].' ON '.$sql;
-        } elseif (preg_match('/^([a-zA-Z0-9_]+)([\s]+(as|AS))?[\s]+([A-Z0-9]{1,2})$/', $table, $match)) {
-            $sql = ' '.$type.' JOIN '.$this->getFullTableName($match[1]).' AS '.$match[4].' ON '.$sql;
-        } elseif (preg_match('/^([a-z0-9_]+)([\s]+as)?[\s]+([a-z0-9_]+)$/i', $table, $match)) {
-            $sql = ' '.$type.' JOIN '.$this->getFullTableName($match[1]).' AS `'.$match[3].'` ON '.$sql;
-        } else {
-            $sql = ' '.$type.' JOIN '.$table.' ON '.$sql;
-        }
-        if (is_array($ret)) {
-            return array($sql, $ret[1]);
-        } else {
-            return $sql;
-        }
-    }
-
-    /**
-     * สร้าง query เรียงลำดับ.
-     *
-     * @param array|string $fields array('field ASC','field DESC') หรือ 'field ASC', 'field DESC', ....
+     * @param array $params
      *
      * @return string
      */
-    protected function buildOrder($fields)
+    protected function buildValue($params)
     {
-        $sqls = array();
-        foreach ((array) $fields as $item) {
-            if (preg_match('/^([A-Z0-9]{1,2}\.)([a-z0-9_]+)([\s]{1,}(ASC|DESC))?$/i', $item, $match)) {
-                // U.id DESC
-                $sqls[] = $match[1].'`'.$match[2].'`'.(isset($match[4]) ? " $match[4]" : '');
-            } elseif (preg_match('/^([a-z0-9_]+)(\.([a-z0-9_]+))?(([\s]+)?(ASC|DESC))?$/i', $item, $match)) {
-                // field.id DESC
-                $sqls[] = '`'.$match[1].'`'.(empty($match[3]) ? '' : '.`'.$match[3].'`').(isset($match[6]) ? " $match[6]" : '');
-            } elseif (strtoupper($item) === 'RAND()') {
-                // RAND()
-                $sqls[] = 'RAND()';
+        if (is_array($params)) {
+            if (sizeof($params) == 2) {
+                $params = array($params[0], '=', $params[1]);
+            } else {
+                $params = array($params[0], trim($params[1]), $params[2]);
             }
+            $key = $this->fieldName($params[0]);
+            if (is_numeric($params[2]) || is_bool($params[2])) {
+                // value เป็นตัวเลข หรือ boolean
+                $value = $params[2];
+            } elseif (is_array($params[2])) {
+                // value เป็น array
+                if ($params[1] == '=') {
+                    $params[1] = 'IN';
+                }
+                $qs = array();
+                foreach ($params[2] as $item) {
+                    if (is_numeric($item) || is_bool($item)) {
+                        $qs[] = $item;
+                    } else {
+                        $qs[] = "'$item'";
+                    }
+                }
+                $value = '('.implode(', ', $qs).')';
+            } elseif (preg_match('/^\((.*)\)([\s]+as)?[\s]+([a-z0-9_]+)$/i', $params[2], $match)) {
+                // value เป็น query string
+                $value = "($match[1]) AS `$match[3]`";
+            } elseif (preg_match('/^([A-Z0-9]{1,2})\.([a-zA-Z0-9_]+)$/', $params[2], $match)) {
+                // U.id
+                $value = $match[1].'.`'.$match[2].'`';
+            } elseif (preg_match('/^([a-z0-9_]+)\.([a-z0-9_]+)$/i', $params[2], $match)) {
+                // value เป็น table.field
+                $value = '`'.$match[1].'`.`'.$match[2].'`';
+            } else {
+                // value เป็น string
+                $value = "'".$params[2]."'";
+            }
+            $params = $key.' '.$params[1].' '.$value;
         }
 
-        return implode(', ', $sqls);
+        return $params;
     }
 
     /**
-     * สร้าง query สำหรับ GROUP BY.
+     * ฟังก์ชั่นสร้างคำสั่ง WHERE.
+     * คืนค่า string สำหรับคำสั่ง WHERE หรือคืนค่า array(where, values) สำหรับใช้กับการ bind.
      *
-     * @param array|string $fields array('U.id', 'U.username') หรือ string U.id
+     * @param mixed  $condition
+     * @param string $operator  (optional) เช่น AND หรือ OR
+     * @param string $id        (optional )ชื่อฟิลด์ที่เป็น key
      *
-     * @return string
+     * @return string|array
      */
-    protected function buildGroup($fields)
+    protected function buildWhere($condition, $operator = 'AND', $id = 'id')
     {
-        $sqls = array();
-        foreach ((array) $fields as $item) {
-            $sqls[] = $this->fieldName($item);
+        if (is_array($condition)) {
+            if (is_array($condition[0])) {
+                $qs = array();
+                $ps = array();
+                foreach ($condition as $i => $item) {
+                    $ret = $this->whereValue($item, $i);
+                    if (is_array($ret)) {
+                        $qs[] = $ret[0];
+                        $ps = ArrayTool::replace($ps, $ret[1]);
+                    } else {
+                        $qs[] = $ret;
+                    }
+                }
+                $ret = implode(' '.$operator.' ', $qs);
+                if (!empty($ps)) {
+                    $ret = array($ret, $ps);
+                }
+            } else {
+                $ret = $this->whereValue($condition);
+            }
+        } elseif ($condition instanceof Sql) {
+            $values = $condition->getValues();
+            if (empty($values)) {
+                $ret = $condition->text();
+            } else {
+                $ret = array($condition->text(), $values);
+            }
+        } elseif (preg_match('/^[0-9]+$/', $condition)) {
+            // primaryKey
+            $ret = $this->fieldName($id).' = '.$condition;
+        } else {
+            // พารามิเตอร์ ไม่ถูกต้อง
+            throw new \InvalidArgumentException('Invalid arguments in buildWhere');
         }
 
-        return empty($sqls) ? '' : implode(', ', $sqls);
+        return $ret;
     }
 
     /**
-     * ฟังก์ชั่นสร้างคีย์ สำหรับการ execute.
+     * ฟังก์ชั่นสร้างคำสั่ง WHERE และ values ไม่ใส่ alias ให้กับชื่อฟิลด์
+     * คืนค่า ($condition, $values).
      *
-     * @param string $name   ชื่อฟิลด์
-     * @param string $prefix คำนำหน้าชื่อฟิลด์ ใช้เพื่อป้องกันการใช้ตัวแปรซ้ำ
+     * @param mixed  $condition
+     * @param string $operator  (optional) เช่น AND หรือ OR
+     * @param string $id        (optional )ชื่อฟิลด์ที่เป็น key
      *
-     * @return string
+     * @return array
      */
-    protected function aliasName($name, $prefix = '')
+    protected function buildWhereValues($condition, $operator = 'AND', $id = 'id')
     {
-        return ':'.$prefix.trim(preg_replace('/[`\._\-]/', '', $name));
+        if (is_array($condition)) {
+            $values = array();
+            $qs = array();
+            if (is_array($condition[0])) {
+                foreach ($condition as $item) {
+                    $ret = $this->buildWhereValues($item, $operator, $id);
+                    $qs[] = $ret[0];
+                    $values = ArrayTool::replace($values, $ret[1]);
+                }
+                $condition = implode(' '.$operator.' ', $qs);
+            } elseif (strpos($condition[0], '(') !== false) {
+                $condition = $condition[0];
+            } else {
+                if (sizeof($condition) == 2) {
+                    $condition = array($condition[0], '=', $condition[1]);
+                } else {
+                    $condition[1] = strtoupper(trim($condition[1]));
+                }
+                if (is_array($condition[2])) {
+                    $operator = $condition[1] == '=' ? 'IN' : $condition[1];
+                    $qs = array();
+                    foreach ($condition[2] as $k => $v) {
+                        $qs[] = ":$condition[0]$k";
+                        $values[":$condition[0]$k"] = $v;
+                    }
+                    $condition = $this->fieldName($condition[0]).' '.$operator.' ('.implode(',', $qs).')';
+                } else {
+                    $values[":$condition[0]"] = $condition[2];
+                    $condition = $this->fieldName($condition[0]).' '.$condition[1].' :'.$condition[0];
+                }
+            }
+        } elseif (is_numeric($condition)) {
+            // primaryKey
+            $values = array(":$id" => $condition);
+            $condition = "`$id` = :$id";
+        } else {
+            $values = array();
+        }
+
+        return array($condition, $values);
     }
 
     /**
@@ -371,159 +467,69 @@ abstract class Query extends \Kotchasan\Database\Db
     }
 
     /**
-     * แปลงข้อมูลรูปแบบ SQL.
+     * ฟังก์ชั่นสำหรับจัดกลุ่มคำสั่ง และ เชื่อมแต่ละกลุ่มด้วย AND.
      *
-     * @param array $params
-     *                      รูปแบบ array('field1', 'condition', 'field2')
-     *                      ไม่ระบุ condition หมายถึง = หรือ IN
+     * @param array $params คำสั่ง รูปแบบ array('field1', 'condition', 'field2')
+     *
+     * @return \Sql
+     */
+    protected function groupAnd($params)
+    {
+        if (func_num_args() > 1) {
+            $params = func_get_args();
+        }
+        $sqls = array();
+        foreach ($params as $i => $item) {
+            $sqls[] = $this->buildValue($item);
+        }
+
+        return Sql::create('('.implode(' AND ', $sqls).')');
+    }
+
+    /**
+     * ฟังก์ชั่นสำหรับจัดกลุ่มคำสั่ง และ เชื่อมแต่ละกลุ่มด้วย OR.
+     *
+     * @param array $params คำสั่ง รูปแบบ array('field1', 'condition', 'field2')
+     *
+     * @return \Sql
+     */
+    protected function groupOr($params)
+    {
+        if (func_num_args() > 1) {
+            $params = func_get_args();
+        }
+        $sqls = array();
+        foreach ($params as $i => $item) {
+            $sqls[] = $this->buildValue($item);
+        }
+
+        return Sql::create('('.implode(' OR ', $sqls).')');
+    }
+
+    /**
+     * ฟังก์ชั่นอ่านชื่อตารางและชื่อรอง และใส่ ` ครอบชื่อตารางด้วย.
+     *
+     * @param string $table ชื่อตารางตามที่กำหนดใน settings/datasbase.php
      *
      * @return string
      */
-    protected function buildValue($params)
+    protected function quoteTableName($table)
     {
-        if (is_array($params)) {
-            if (sizeof($params) == 2) {
-                $params = array($params[0], '=', $params[1]);
+        if (is_array($table)) {
+            if ($table[0] instanceof QueryBuilder) {
+                $table = '('.$table[0]->text().') AS '.$table[1];
             } else {
-                $params = array($params[0], trim($params[1]), $params[2]);
+                $table = '('.$table[0].') AS '.$table[1];
             }
-            $key = $this->fieldName($params[0]);
-            if (is_numeric($params[2]) || is_bool($params[2])) {
-                // value เป็นตัวเลข หรือ boolean
-                $value = $params[2];
-            } elseif (is_array($params[2])) {
-                // value เป็น array
-                if ($params[1] == '=') {
-                    $params[1] = 'IN';
-                }
-                $qs = array();
-                foreach ($params[2] as $item) {
-                    if (is_numeric($item) || is_bool($item)) {
-                        $qs[] = $item;
-                    } else {
-                        $qs[] = "'$item'";
-                    }
-                }
-                $value = '('.implode(', ', $qs).')';
-            } elseif (preg_match('/^\((.*)\)([\s]+as)?[\s]+([a-z0-9_]+)$/i', $params[2], $match)) {
-                // value เป็น query string
-                $value = "($match[1]) AS `$match[3]`";
-            } elseif (preg_match('/^([A-Z0-9]{1,2})\.([a-zA-Z0-9_]+)$/', $params[2], $match)) {
-                // U.id
-                $value = $match[1].'.`'.$match[2].'`';
-            } elseif (preg_match('/^([a-z0-9_]+)\.([a-z0-9_]+)$/i', $params[2], $match)) {
-                // value เป็น table.field
-                $value = '`'.$match[1].'`.`'.$match[2].'`';
-            } else {
-                // value เป็น string
-                $value = "'".$params[2]."'";
-            }
-            $params = $key.' '.$params[1].' '.$value;
-        }
-
-        return $params;
-    }
-
-    /**
-     * ฟังก์ชั่นสร้างคำสั่ง WHERE.
-     *
-     * @param mixed  $condition
-     * @param string $operator  (optional) เช่น AND หรือ OR
-     * @param string $id        (optional )ชื่อฟิลด์ที่เป็น key
-     *
-     * @return string|array คืนค่า string สำหรับคำสั่ง WHERE หรือคืนค่า array(where, values) สำหรับใช้กับการ bind
-     */
-    protected function buildWhere($condition, $operator = 'AND', $id = 'id')
-    {
-        if (is_array($condition)) {
-            if (is_array($condition[0])) {
-                $qs = array();
-                $ps = array();
-                foreach ($condition as $i => $item) {
-                    $ret = $this->whereValue($item, $i);
-                    if (is_array($ret)) {
-                        $qs[] = $ret[0];
-                        $ps = ArrayTool::replace($ps, $ret[1]);
-                    } else {
-                        $qs[] = $ret;
-                    }
-                }
-                $ret = implode(' '.$operator.' ', $qs);
-                if (!empty($ps)) {
-                    $ret = array($ret, $ps);
-                }
-            } else {
-                $ret = $this->whereValue($condition);
-            }
-        } elseif ($condition instanceof Sql) {
-            $values = $condition->getValues();
-            if (empty($values)) {
-                $ret = $condition->text();
-            } else {
-                $ret = array($condition->text(), $values);
-            }
-        } elseif (preg_match('/^[0-9]+$/', $condition)) {
-            // primaryKey
-            $ret = $this->fieldName($id).' = '.$condition;
+        } elseif (preg_match('/^([a-zA-Z0-9_]+)(\s+(as|AS))?[\s]+([A-Z0-9]{1,2})$/', $table, $match)) {
+            $table = $this->getFullTableName($match[1]).' AS '.$match[4];
+        } elseif (preg_match('/^([a-zA-Z0-9_]+)(\s+(as|AS))?[\s]+([a-zA-Z0-9]+)$/', $table, $match)) {
+            $table = $this->getFullTableName($match[1]).' AS `'.$match[4].'`';
         } else {
-            // พารามิเตอร์ ไม่ถูกต้อง
-            throw new \InvalidArgumentException('Invalid arguments in buildWhere');
+            $table = $this->getFullTableName($table);
         }
 
-        return $ret;
-    }
-
-    /**
-     * ฟังก์ชั่นสร้างคำสั่ง WHERE และ values ไม่ใส่ alias ให้กับชื่อฟิลด์.
-     *
-     * @param mixed  $condition
-     * @param string $operator  (optional) เช่น AND หรือ OR
-     * @param string $id        (optional )ชื่อฟิลด์ที่เป็น key
-     *
-     * @return array ($condition, $values)
-     */
-    protected function buildWhereValues($condition, $operator = 'AND', $id = 'id')
-    {
-        if (is_array($condition)) {
-            $values = array();
-            $qs = array();
-            if (is_array($condition[0])) {
-                foreach ($condition as $item) {
-                    $ret = $this->buildWhereValues($item, $operator, $id);
-                    $qs[] = $ret[0];
-                    $values = ArrayTool::replace($values, $ret[1]);
-                }
-                $condition = implode(' '.$operator.' ', $qs);
-            } elseif (strpos($condition[0], '(') !== false) {
-                $condition = $condition[0];
-            } else {
-                if (sizeof($condition) == 2) {
-                    $condition = array($condition[0], '=', $condition[1]);
-                } else {
-                    $condition[1] = strtoupper(trim($condition[1]));
-                }
-                if (is_array($condition[2])) {
-                    $operator = $condition[1] == '=' ? 'IN' : $condition[1];
-                    $qs = array();
-                    foreach ($condition[2] as $k => $v) {
-                        $qs[] = ":$condition[0]$k";
-                        $values[":$condition[0]$k"] = $v;
-                    }
-                    $condition = $this->fieldName($condition[0]).' '.$operator.' ('.implode(',', $qs).')';
-                } else {
-                    $values[":$condition[0]"] = $condition[2];
-                    $condition = $this->fieldName($condition[0]).' '.$condition[1].' :'.$condition[0];
-                }
-            }
-        } elseif (is_numeric($condition)) {
-            // primaryKey
-            $values = array(":$id" => $condition);
-            $condition = "`$id` = :$id";
-        } else {
-            $values = array();
-        }
-
-        return array($condition, $values);
+        return $table;
     }
 
     /**

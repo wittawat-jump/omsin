@@ -2,10 +2,10 @@
 /**
  * @filesource modules/index/views/ierecord.php
  *
- * @see http://www.kotchasan.com/
- *
  * @copyright 2016 Goragod.com
  * @license http://www.kotchasan.com/license/
+ *
+ * @see http://www.kotchasan.com/
  */
 
 namespace Index\Ierecord;
@@ -161,6 +161,7 @@ class View extends \Gcms\View
         // Javascript
         $form->script('initIerecord();');
         // คืนค่าฟอร์ม
+
         return $form->render();
     }
 }

@@ -2,10 +2,10 @@
 /**
  * @filesource modules/index/controllers/main.php
  *
- * @see http://www.kotchasan.com/
- *
  * @copyright 2016 Goragod.com
  * @license http://www.kotchasan.com/license/
+ *
+ * @see http://www.kotchasan.com/
  */
 
 namespace Index\Main;
@@ -104,6 +104,7 @@ class Controller extends \Gcms\Controller
             return $template->render();
         }
         // ไม่พบหน้าที่เรียก
+
         return \Index\Error\Controller::page404();
     }
 }

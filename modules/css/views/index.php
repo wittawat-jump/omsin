@@ -2,10 +2,10 @@
 /**
  * @filesource modules/css/views/index.php
  *
- * @see http://www.kotchasan.com/
- *
  * @copyright 2016 Goragod.com
  * @license http://www.kotchasan.com/license/
+ *
+ * @see http://www.kotchasan.com/
  */
 
 namespace Css\Index;
@@ -62,6 +62,9 @@ class View extends \Kotchasan\KBase
             ->send();
     }
 
+    /**
+     * @param $css
+     */
     public static function compress($css)
     {
         return preg_replace(array('!/\*[^*]*\*+([^/][^*]*\*+)*/!', '/[\s]{0,}([:;,>\{\}])[\s]{0,}/', '/[\r\n\t]/s', '/[\s]{2,}/s', '/;}/'), array('', '\\1', '', ' ', '}'), $css);

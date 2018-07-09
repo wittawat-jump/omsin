@@ -2,10 +2,10 @@
 /**
  * @filesource modules/index/models/fblogin.php
  *
- * @see http://www.kotchasan.com/
- *
  * @copyright 2016 Goragod.com
  * @license http://www.kotchasan.com/license/
+ *
+ * @see http://www.kotchasan.com/
  */
 
 namespace Index\Fblogin;
@@ -46,7 +46,6 @@ class Model extends \Kotchasan\Model
                 ->first();
             if ($search === false) {
                 $name = trim($request->post('first_name')->topic().' '.$request->post('last_name')->topic());
-                $website = str_replace(array('http://', 'https://', 'www.'), '', $request->post('link')->url());
                 $save = \Index\Register\Model::execute($this, array(
                     'username' => $username,
                     'password' => $password,

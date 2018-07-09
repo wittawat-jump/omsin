@@ -2,10 +2,10 @@
 /**
  * @filesource modules/index/models/database.php
  *
- * @see http://www.kotchasan.com/
- *
  * @copyright 2016 Goragod.com
  * @license http://www.kotchasan.com/license/
+ *
+ * @see http://www.kotchasan.com/
  */
 
 namespace Index\Database;
@@ -24,7 +24,13 @@ use Kotchasan\Login;
  */
 class Model extends \Kotchasan\Model
 {
+    /**
+     * @var string
+     */
     public static $transfer = 'โอนเงินระหว่างบัญชี';
+    /**
+     * @var string
+     */
     public static $summit = 'ยอดยกมา';
 
     /**
@@ -261,6 +267,15 @@ class Model extends \Kotchasan\Model
         }
     }
 
+    /**
+     * @param $wallet
+     * @param $category_id
+     * @param $owner_id
+     * @param $category_table
+     * @param $topic
+     *
+     * @return mixed
+     */
     private function getWallet(&$wallet, &$category_id, $owner_id, $category_table, $topic)
     {
         if (isset($wallet[$topic])) {
@@ -279,6 +294,16 @@ class Model extends \Kotchasan\Model
         }
     }
 
+    /**
+     * @param $category
+     * @param $status
+     * @param $category_id
+     * @param $owner_id
+     * @param $category_table
+     * @param $topic
+     *
+     * @return mixed
+     */
     private function getCategory(&$category, $status, &$category_id, $owner_id, $category_table, $topic)
     {
         if (isset($category[$status][$topic])) {

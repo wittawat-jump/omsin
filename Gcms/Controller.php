@@ -2,10 +2,10 @@
 /**
  * @filesource Gcms/Controller.php
  *
- * @see http://www.kotchasan.com/
- *
  * @copyright 2016 Goragod.com
  * @license http://www.kotchasan.com/license/
+ *
+ * @see http://www.kotchasan.com/
  */
 
 namespace Gcms;
@@ -20,29 +20,32 @@ namespace Gcms;
 class Controller extends \Kotchasan\Controller
 {
     /**
-     * ข้อความไตเติลบาร์.
+     * View.
      *
-     * @var string
+     * @var \Gcms\View
      */
-    protected $title;
+    public static $view;
+
     /**
      * เก็บคลาสของเมนูที่เลือก
      *
      * @var string
      */
     protected $menu;
-    /**
-     * View.
-     *
-     * @var \Gcms\View
-     */
-    public static $view;
+
     /**
      * Menu Controller.
      *
      * @var \Index\Menu\Controller
      */
     protected static $menus;
+
+    /**
+     * ข้อความไตเติลบาร์.
+     *
+     * @var string
+     */
+    protected $title;
 
     /**
      * init Class.
@@ -55,16 +58,6 @@ class Controller extends \Kotchasan\Controller
     }
 
     /**
-     * ข้อความ title bar.
-     *
-     * @return string
-     */
-    public function title()
-    {
-        return $this->title;
-    }
-
-    /**
      * ชื่อเมนูที่เลือก
      *
      * @return string
@@ -72,5 +65,15 @@ class Controller extends \Kotchasan\Controller
     public function menu()
     {
         return $this->menu;
+    }
+
+    /**
+     * ข้อความ title bar.
+     *
+     * @return string
+     */
+    public function title()
+    {
+        return $this->title;
     }
 }

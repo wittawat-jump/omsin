@@ -2,10 +2,10 @@
 /**
  * @filesource Gcms/Login.php
  *
- * @see http://www.kotchasan.com/
- *
  * @copyright 2016 Goragod.com
  * @license http://www.kotchasan.com/license/
+ *
+ * @see http://www.kotchasan.com/
  */
 
 namespace Gcms;
@@ -23,11 +23,50 @@ use Kotchasan\Language;
 class Login extends \Kotchasan\Login implements \Kotchasan\LoginInterface
 {
     /**
-     * ฟังก์ชั่นตรวจสอบสมาชิกกับฐานข้อมูล.
+     * ฟังก์ชั่นตรวจสอบการ login และบันทึกการเข้าระบบ
+     * เข้าระบบสำเร็จคืนค่าแอเรย์ข้อมูลสมาชิก, ไม่สำเร็จ คืนค่าข้อความผิดพลาด.
+     *
+     * @param array $params ข้อมูลการ login ที่ส่งมา $params = array('username' => '', 'password' => '');
+     *
+     * @return string|array
+     */
+    public function checkLogin($params)
+    {
+        // ตรวจสอบสมาชิกกับฐานข้อมูล
+        $login_result = self::checkMember($params);
+        if (is_string($login_result)) {
+            return $login_result;
+        } else {
+            // ip ที่ login
+            $ip = self::$request->getClientIp();
+            // current session
+            $session_id = session_id();
+            // อัปเดทการเยี่ยมชม
+            if ($session_id != $login_result['session_id']) {
+                ++$login_result['visited'];
+                \Kotchasan\Model::createQuery()
+                    ->update('user')
+                    ->set(array(
+                        'session_id' => $session_id,
+                        'visited' => $login_result['visited'],
+                        'lastvisited' => time(),
+                        'ip' => $ip,
+                    ))
+                    ->where((int) $login_result['id'])
+                    ->execute();
+            }
+        }
+
+        return $login_result;
+    }
+
+    /**
+     * ฟังก์ชั่นตรวจสอบสมาชิกกับฐานข้อมูล
+     * คืนค่าข้อมูลสมาชิก (array) ไม่พบคืนค่าข้อความผิดพลาด (string).
      *
      * @param array $params
      *
-     * @return array|string คืนค่าข้อมูลสมาชิก (array) ไม่พบคืนค่าข้อความผิดพลาด (string)
+     * @return array|string
      */
     public static function checkMember($params)
     {
@@ -62,45 +101,6 @@ class Login extends \Kotchasan\Login implements \Kotchasan\LoginInterface
         } else {
             return $login_result;
         }
-    }
-
-    /**
-     * ฟังก์ชั่นตรวจสอบการ login และบันทึกการเข้าระบบ.
-     *
-     * @param array $params ข้อมูลการ login ที่ส่งมา $params = array('username' => '', 'password' => '');
-     *
-     * @return string|array เข้าระบบสำเร็จคืนค่าแอเรย์ข้อมูลสมาชิก, ไม่สำเร็จ คืนค่าข้อความผิดพลาด
-     */
-    public function checkLogin($params)
-    {
-        // ตรวจสอบสมาชิกกับฐานข้อมูล
-        $login_result = self::checkMember($params);
-        if (is_string($login_result)) {
-            return $login_result;
-        } else {
-            // model
-            $model = new \Kotchasan\Model();
-            // ip ที่ login
-            $ip = self::$request->getClientIp();
-            // current session
-            $session_id = session_id();
-            // อัปเดทการเยี่ยมชม
-            if ($session_id != $login_result['session_id']) {
-                ++$login_result['visited'];
-                $model->db()->createQuery()
-                    ->update('user')
-                    ->set(array(
-                        'session_id' => $session_id,
-                        'visited' => $login_result['visited'],
-                        'lastvisited' => time(),
-                        'ip' => $ip,
-                    ))
-                    ->where((int) $login_result['id'])
-                    ->execute();
-            }
-        }
-
-        return $login_result;
     }
 
     /**

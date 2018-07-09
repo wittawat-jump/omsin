@@ -2,10 +2,10 @@
 /**
  * @filesource Gcms/Email.php
  *
- * @see http://www.kotchasan.com/
- *
  * @copyright 2016 Goragod.com
  * @license http://www.kotchasan.com/license/
+ *
+ * @see http://www.kotchasan.com/
  */
 
 namespace Gcms;
@@ -29,7 +29,7 @@ class Email extends \Kotchasan\Email
      * @param int    $id     ID ของจดหมายที่ต้องการส่ง
      * @param string $module ชื่อโมดูลของจดหมายที่ต้องการส่ง
      * @param array  $datas  ข้อมูลที่จะถูกแทนที่ลงในจดหมาย ในรูป 'ตัวแปร'=>'ข้อความ'
-     * @param string $to     ที่อยู่อีเมลผู้รับ  คั่นแต่ละรายชื่อด้วย ,
+     * @param string $to     ที่อยู่อีเมลผู้รับ คั่นแต่ละรายชื่อด้วย ,
      *
      * @return \static
      */
@@ -66,6 +66,7 @@ class Email extends \Kotchasan\Email
                 $to[] = $email['copy_to'];
             }
             // ส่งอีเมล
+
             return parent::send(implode(',', $to), $from, $subject, $msg);
         }
     }

@@ -2,10 +2,10 @@
 /**
  * @filesource modules/index/controllers/modal.php
  *
- * @see http://www.kotchasan.com/
- *
  * @copyright 2016 Goragod.com
  * @license http://www.kotchasan.com/license/
+ *
+ * @see http://www.kotchasan.com/
  */
 
 namespace Index\Modal;
@@ -21,6 +21,9 @@ use Kotchasan\Http\Request;
  */
 class Controller extends \Kotchasan\Controller
 {
+    /**
+     * @param Request $request
+     */
     public function index(Request $request)
     {
         if ($request->initSession() && $request->isReferer() && preg_match('/^modal_([a-z]+)_(.*)$/', $request->post('data')->toString(), $match)) {

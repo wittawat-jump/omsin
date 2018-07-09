@@ -2,10 +2,10 @@
 /**
  * @filesource modules/index/views/search.php
  *
- * @see http://www.kotchasan.com/
- *
  * @copyright 2016 Goragod.com
  * @license http://www.kotchasan.com/license/
+ *
+ * @see http://www.kotchasan.com/
  */
 
 namespace Index\Search;
@@ -25,9 +25,21 @@ use Kotchasan\Language;
  */
 class View extends \Gcms\View
 {
+    /**
+     * @var mixed
+     */
     private $wallet;
+    /**
+     * @var mixed
+     */
     private $categories;
+    /**
+     * @var int
+     */
     private $total = 0;
+    /**
+     * @var int
+     */
     private $wallet_id = 0;
 
     /**
