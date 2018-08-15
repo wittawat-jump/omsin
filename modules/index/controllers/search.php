@@ -33,6 +33,9 @@ class Controller extends \Gcms\Controller
      */
     public function render(Request $request)
     {
+        $this->title = Language::get('Custom Report');
+        // เลือกเมนู
+        $this->menu = 'tools';
         // สมาชิก
         if ($login = Login::isMember()) {
             // ค่าที่ส่งมา
@@ -43,15 +46,13 @@ class Controller extends \Gcms\Controller
                 'wallet' => $request->request('wallet', 0)->toInt(),
                 'status' => $request->request('status', '')->filter('A-Z'),
             );
-            $this->title = Language::get('Custom Report');
+
             if ($index['month'] > 0) {
                 $this->title .= ' '.Language::get('month').' '.Language::get('MONTH_LONG')[$index['month']];
             }
             if ($index['year'] > 0) {
                 $this->title .= ' '.Language::get('year').' '.($index['year'] + Language::get('YEAR_OFFSET'));
             }
-            // เลือกเมนู
-            $this->menu = 'tools';
             // แสดงผล
             $section = Html::create('section');
             // breadcrumbs
@@ -76,8 +77,8 @@ class Controller extends \Gcms\Controller
 
             return $section->render();
         }
-        // 404.html
+        // 404
 
-        return \Index\Error\Controller::page404();
+        return \Index\Error\Controller::execute($this);
     }
 }

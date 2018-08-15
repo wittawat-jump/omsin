@@ -16,7 +16,7 @@ use Kotchasan\Language;
 use Kotchasan\Login;
 
 /**
- * module=dashboard.
+ * module=about.
  *
  * @author Goragod Wiriya <admin@goragod.com>
  *
@@ -33,12 +33,12 @@ class Controller extends \Gcms\Controller
      */
     public function render(Request $request)
     {
+        // ข้อความ title bar
+        $this->title = Language::get('About');
+        // เลือกเมนู
+        $this->menu = 'about';
         // สมาชิก
         if (Login::isMember()) {
-            // ข้อความ title bar
-            $this->title = Language::get('About');
-            // เลือกเมนู
-            $this->menu = 'about';
             // แสดงผล
             $section = Html::create('section');
             // breadcrumbs
@@ -61,8 +61,8 @@ class Controller extends \Gcms\Controller
 
             return $section->render();
         }
-        // 404.html
+        // 404
 
-        return \Index\Error\Controller::page404();
+        return \Index\Error\Controller::execute($this);
     }
 }

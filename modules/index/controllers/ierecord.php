@@ -33,12 +33,12 @@ class Controller extends \Gcms\Controller
      */
     public function render(Request $request)
     {
+        // ข้อความ title bar
+        $this->title = Language::trans('{LNG_Recording} {LNG_Income}/{LNG_Expense}');
+        // เลือกเมนู
+        $this->menu = 'ierecord';
         // สมาชิก
         if ($login = Login::isMember()) {
-            // ข้อความ title bar
-            $this->title = Language::get('Recording').' '.Language::get('Income').'/'.Language::get('Expense');
-            // เลือกเมนู
-            $this->menu = 'ierecord';
             // แสดงผล
             $section = Html::create('section');
             // breadcrumbs
@@ -56,8 +56,8 @@ class Controller extends \Gcms\Controller
 
             return $section->render();
         }
-        // 404.html
+        // 404
 
-        return \Index\Error\Controller::page404();
+        return \Index\Error\Controller::execute($this);
     }
 }

@@ -43,9 +43,9 @@ class Controller extends \Gcms\Controller
             );
             if ($index && isset($typies[$index->status])) {
                 // ข้อความ title bar
-                $this->title = Language::get('Details of').' '.Language::get($typies[$index->status]);
+                $title = Language::get('Details of').' '.Language::get($typies[$index->status]);
                 // เลือกเมนู
-                $this->menu = 'ierecord';
+                $menu = 'ierecord';
                 // แสดงผล
                 $section = Html::create('section');
                 // breadcrumbs
@@ -56,7 +56,7 @@ class Controller extends \Gcms\Controller
                 $ul->appendChild('<li><a class="icon-home" href="index.php">{LNG_Home}</a></li>');
                 $ul->appendChild('<li><span>{LNG_Edit}</span></li>');
                 $section->add('header', array(
-                    'innerHTML' => '<h2 class="icon-write">'.$this->title.'</h2>',
+                    'innerHTML' => '<h2 class="icon-write">'.$title.'</h2>',
                 ));
                 $section->add('a', array(
                     'id' => 'ierecord',
@@ -67,11 +67,15 @@ class Controller extends \Gcms\Controller
                 // แสดงฟอร์ม
                 $section->appendChild(createClass('Index\Ieedit\View')->render($request, $index));
 
-                return $section->render();
+                return (object) array(
+                    'title' => $title,
+                    'module' => $menu,
+                    'detail' => $section->render(),
+                );
             }
         }
-        // 404.html
+        // 404
 
-        return \Index\Error\Controller::page404();
+        return \Index\Error\Controller::execute($this);
     }
 }

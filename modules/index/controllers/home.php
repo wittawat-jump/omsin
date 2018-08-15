@@ -32,12 +32,12 @@ class Controller extends \Gcms\Controller
      */
     public function render(Request $request)
     {
+        // ไตเติล
+        $this->title = self::$cfg->web_title.' - '.self::$cfg->web_description;
+        // เมนู
+        $this->menu = 'dashboard';
         // สมาชิก
         if ($login = Login::isMember()) {
-            // ข้อความ title bar
-            $this->title = self::$cfg->web_title.' - '.self::$cfg->web_description;
-            // เลือกเมนู
-            $this->menu = 'dashboard';
             // แสดงผล
             $section = Html::create('section');
             // breadcrumbs
@@ -60,8 +60,8 @@ class Controller extends \Gcms\Controller
 
             return $section->render();
         }
-        // 404.html
+        // 404
 
-        return \Index\Error\Controller::page404();
+        return \Index\Error\Controller::execute($this);
     }
 }

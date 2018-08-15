@@ -23,6 +23,19 @@ use Kotchasan\Language;
 class Login extends \Kotchasan\Login implements \Kotchasan\LoginInterface
 {
     /**
+     * ตรวจสอบความสามารถในการเข้าระบบแอดมิน
+     * คืนค่าข้อมูลสมาชิก (แอเรย์) ถ้าสามารถเข้าระบบแอดมินได้ ไม่ใช่คืนค่า null.
+     *
+     * @return array|null
+     */
+    public static function adminAccess()
+    {
+        $login = self::isMember();
+
+        return isset($login['active']) && $login['active'] == 1 ? $login : null;
+    }
+
+    /**
      * ฟังก์ชั่นตรวจสอบการ login และบันทึกการเข้าระบบ
      * เข้าระบบสำเร็จคืนค่าแอเรย์ข้อมูลสมาชิก, ไม่สำเร็จ คืนค่าข้อความผิดพลาด.
      *
@@ -101,6 +114,41 @@ class Login extends \Kotchasan\Login implements \Kotchasan\LoginInterface
         } else {
             return $login_result;
         }
+    }
+
+    /**
+     * ตรวจสอบความสามารถในการตั้งค่า
+     * แอดมินสูงสุด (status=1) ทำได้ทุกอย่าง
+     * คืนค่าข้อมูลสมาชิก (แอเรย์) ถ้าไม่สามารถทำรายการได้คืนค่า null.
+     *
+     * @param array        $login
+     * @param array|string $permission
+     *
+     * @return array|null
+     */
+    public static function checkPermission($login, $permission)
+    {
+        if (!empty($login)) {
+            if ($login['status'] == 1) {
+                // แอดมิน
+                return $login;
+            } elseif (!empty($permission)) {
+                if (is_array($permission)) {
+                    foreach ($permission as $item) {
+                        if (in_array($item, $login['permission'])) {
+                            // มีสิทธิ์
+                            return $login;
+                        }
+                    }
+                } elseif (in_array($permission, $login['permission'])) {
+                    // มีสิทธิ์
+                    return $login;
+                }
+            }
+        }
+        // ไม่มีสิทธิ
+
+        return null;
     }
 
     /**

@@ -3,3 +3,11 @@ RewriteCond %{REQUEST_URI} !^/\.well\-known/acme\-challenge/
 RewriteCond %{HTTP_HOST} ^omsin\.acc\.in\.th [NC]
 RewriteCond %{SERVER_PORT} 80
 RewriteRule ^(.*)$ https://omsin.acc.in.th/$1 [R=301,L]
+
+# cache 1 week
+<filesMatch ".(jpg|jpeg|png|gif|ico)$">
+  Header set Cache-Control "max-age=604800, public"
+</filesMatch>
+<filesMatch ".(css|js|ttf|woff|svg|eot)$">
+  Header set Cache-Control "max-age=604800, public"
+</filesMatch>

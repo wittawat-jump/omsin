@@ -44,7 +44,9 @@ class Controller extends \Gcms\Controller
             // ตัวเอง
             if ($user && $user['id'] == $login['id']) {
                 // แสดงผล
-                $section = Html::create('section');
+                $section = Html::create('section', array(
+                    'class' => 'content_bg',
+                ));
                 // breadcrumbs
                 $breadcrumbs = $section->add('div', array(
                     'class' => 'breadcrumbs',
@@ -67,8 +69,8 @@ class Controller extends \Gcms\Controller
                 return $section->render();
             }
         }
-        // 404.html
+        // 404
 
-        return \Index\Error\Controller::page404();
+        return \Index\Error\Controller::execute($this);
     }
 }

@@ -34,6 +34,7 @@ class Model extends \Kotchasan\Model
         $ret = array();
         // session, token
         if ($request->initSession() && $request->isSafe()) {
+            // โหมดตัวอย่างไม่สามารถ register ด้วยอีเมล์ได้
             if (self::$cfg->demo_mode == false) {
                 // รับค่าจากการ POST
                 $save = array(

@@ -33,20 +33,20 @@ class Controller extends \Gcms\Controller
      */
     public function render(Request $request)
     {
+        $typies = array(
+            1 => 'Income type',
+            2 => 'Expense type',
+            4 => 'Wallet',
+        );
+        // 1=หมวดหมู่, 4=กระเป๋าเงิน
+        $typ = $request->request('typ')->toInt();
+        $typ = isset($typies[$typ]) ? $typ : 4;
+        // ข้อความ title bar
+        $this->title = Language::get($typies[$typ]);
+        // เลือกเมนู
+        $this->menu = 'tools';
         // สมาชิก
         if ($login = Login::isMember()) {
-            $typies = array(
-                1 => 'Income type',
-                2 => 'Expense type',
-                4 => 'Wallet',
-            );
-            // 1=หมวดหมู่, 4=กระเป๋าเงิน
-            $typ = $request->request('typ')->toInt();
-            $typ = isset($typies[$typ]) ? $typ : 4;
-            // ข้อความ title bar
-            $this->title = Language::get($typies[$typ]);
-            // เลือกเมนู
-            $this->menu = 'tools';
             // แสดงผล
             $section = Html::create('section');
             // breadcrumbs
@@ -70,8 +70,8 @@ class Controller extends \Gcms\Controller
 
             return $section->render();
         }
-        // 404.html
+        // 404
 
-        return \Index\Error\Controller::page404();
+        return \Index\Error\Controller::execute($this);
     }
 }

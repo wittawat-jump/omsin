@@ -34,6 +34,10 @@ class Controller extends \Gcms\Controller
      */
     public function render(Request $request)
     {
+        // ข้อความ title bar
+        $this->title = Language::get('Income and Expenditure summary');
+        // เลือกเมนู
+        $this->menu = 'tools';
         // สมาชิก
         if ($login = Login::isMember()) {
             // ค่าที่ส่งมา
@@ -43,7 +47,6 @@ class Controller extends \Gcms\Controller
                 'month' => $request->request('month')->toInt(),
                 'date' => $request->request('date')->date(),
             );
-            $this->title = Language::get('Income and Expenditure summary');
             if (!empty($index['date'])) {
                 if ($index['date'] == date('Y-m-d')) {
                     // รายรับรายจ่ายวันนี้
@@ -53,8 +56,6 @@ class Controller extends \Gcms\Controller
                 } else {
                     // วันที่เลือก
                     $this->title .= ' '.Language::get('date').' '.Date::format($index['date'], 'd M Y');
-                    // เลือกเมนู
-                    $this->menu = 'tools';
                 }
             } else {
                 if ($index['month'] > 0) {
@@ -64,8 +65,6 @@ class Controller extends \Gcms\Controller
                 if ($index['year'] > 0) {
                     $this->title .= ' '.Language::get('year').' '.($index['year'] + Language::get('YEAR_OFFSET'));
                 }
-                // เลือกเมนู
-                $this->menu = 'tools';
             }
             // แสดงผล
             $section = Html::create('section');
@@ -102,8 +101,8 @@ class Controller extends \Gcms\Controller
 
             return $section->render();
         }
-        // 404.html
+        // 404
 
-        return \Index\Error\Controller::page404();
+        return \Index\Error\Controller::execute($this);
     }
 }

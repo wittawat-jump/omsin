@@ -2,10 +2,10 @@
 /**
  * @filesource Kotchasan/DataTable.php
  *
- * @see http://www.kotchasan.com/
- *
  * @copyright 2016 Goragod.com
  * @license http://www.kotchasan.com/license/
+ *
+ * @see http://www.kotchasan.com/
  */
 
 namespace Kotchasan;
@@ -527,6 +527,8 @@ class DataTable extends \Kotchasan\KBase
                 }
                 $this->uri = $this->uri->withParams(array('search' => $search));
             }
+            $form[] = '</div>';
+            $form[] = '<div class="table_search">';
             $form[] = '<fieldset class=search>';
             $form[] = '<label accesskey=f><input type=text name=search value="'.$search.'" placeholder="'.Language::get('Search').'"></label>';
             $form[] = '<button type=submit>&#xe607;</button>';
@@ -534,7 +536,7 @@ class DataTable extends \Kotchasan\KBase
             $form[] = '</fieldset>';
         }
         if (!$this->explain && !empty($form)) {
-            $content[] = '<form class="table_nav" method="get" action="'.$this->uri.'">'.implode('', $form).'</form>';
+            $content[] = '<form class="table_nav" method="get" action="'.$this->uri.'"><div>'.implode('', $form).'</div></form>';
         }
         if (isset($this->model)) {
             if ($this->explain) {
@@ -546,8 +548,8 @@ class DataTable extends \Kotchasan\KBase
                 // จำนวนข้อมูลทั้งหมด (Query Builder)
                 $model = new \Kotchasan\Model();
                 $query = $model->db()->createQuery()
-   ->selectCount()
-   ->from(array($this->model, 'Z'));
+                    ->selectCount()
+                    ->from(array($this->model, 'Z'));
                 if ($this->cache) {
                     $query->cacheOn();
                 }
@@ -821,7 +823,7 @@ class DataTable extends \Kotchasan\KBase
                 // id ของข้อมูล
                 $id = isset($items[$this->primaryKey]) ? $items[$this->primaryKey] : $o;
                 $prop = (object) array(
-   'id' => $this->id.'_'.$id,
+                    'id' => $this->id.'_'.$id,
                 );
                 $buttons = array();
                 if (!$this->explain) {
@@ -1102,7 +1104,7 @@ class DataTable extends \Kotchasan\KBase
         } else {
             $prop = array();
             foreach ($item as $key => $value) {
-                if ($key != 'options' && $key != 'value') {
+                if ($key != 'options' && $key != 'value' && $key != 'text' && $key != 'default') {
                     $prop[$key] = $key.'="'.$value.'"';
                 }
             }

@@ -27,7 +27,6 @@ abstract class Query extends \Kotchasan\Database\Db
      * @var bool
      */
     protected $debugger = false;
-
     /**
      * ตัวแปรเก็บคำสั่ง SQL.
      *
@@ -310,9 +309,24 @@ abstract class Query extends \Kotchasan\Database\Db
                     $ret = $this->whereValue($item, $i);
                     if (is_array($ret)) {
                         $qs[] = $ret[0];
-                        $ps = ArrayTool::replace($ps, $ret[1]);
+                        $ps += $ret[1];
                     } else {
                         $qs[] = $ret;
+                    }
+                }
+                $ret = implode(' '.$operator.' ', $qs);
+                if (!empty($ps)) {
+                    $ret = array($ret, $ps);
+                }
+            } elseif ($condition[0] instanceof Sql) {
+                $qs = array();
+                $ps = array();
+                foreach ($condition as $i => $item) {
+                    if ($item instanceof Sql) {
+                        $qs[] = $item->text();
+                        $ps += $item->getValues();
+                    } else {
+                        print_r($item);
                     }
                 }
                 $ret = implode(' '.$operator.' ', $qs);
