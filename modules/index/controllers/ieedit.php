@@ -43,9 +43,9 @@ class Controller extends \Gcms\Controller
             );
             if ($index && isset($typies[$index->status])) {
                 // ข้อความ title bar
-                $title = Language::get('Details of').' '.Language::get($typies[$index->status]);
+                $this->title = Language::get('Details of').' '.Language::get($typies[$index->status]);
                 // เลือกเมนู
-                $menu = 'ierecord';
+                $this->menu = 'ierecord';
                 // แสดงผล
                 $section = Html::create('section');
                 // breadcrumbs
@@ -67,11 +67,7 @@ class Controller extends \Gcms\Controller
                 // แสดงฟอร์ม
                 $section->appendChild(createClass('Index\Ieedit\View')->render($request, $index));
 
-                return (object) array(
-                    'title' => $title,
-                    'module' => $menu,
-                    'detail' => $section->render(),
-                );
+                return $section->render();
             }
         }
         // 404
