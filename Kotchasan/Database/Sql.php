@@ -810,7 +810,11 @@ class Sql
                         }
                         $value = self::quoteValue($key, $condition[1], $values);
                     }
-                } elseif ($condition[2] instanceof QueryBuilder || $condition[2] instanceof self) {
+                } elseif ($condition[2] instanceof QueryBuilder) {
+                    $operator = trim($condition[1]);
+                    $value = '('.$condition[2]->text().')';
+                    $values = $condition[2]->getValues($values);
+                } elseif ($condition[2] instanceof self) {
                     $operator = trim($condition[1]);
                     $value = $condition[2]->text();
                     $values = $condition[2]->getValues($values);

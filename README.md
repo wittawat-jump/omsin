@@ -12,15 +12,41 @@
 
 ## การติดตั้งและการอัปเกรด
 
-1.  แก้ไขไฟล์ /settings/config.php และ /settings/database.php ให้ถูกต้อง
-2.  สร้างฐานข้อมูลตามที่กำหนดใน /settings/database.php เสร็จแล้วทำการสร้างตารางและนำเข้าข้อมูลจากไฟล์ omsin.sql
-3.  ให้อัปโหลดโค้ดทั้งหมดจากที่ดาวน์โหลด ขึ้นไปบน Server ยกเว้น omsin.sql
-4.  ปรับ chmod หรือ chown ให้ไดเร็คทอรี่ datas/ สามารถเขียนได้ https://kotchasan.com/knowledge/เทคนิคการปรับ_chmod_ให้เป็น_777_หรือ_ปรับ_chmod_ให้สามารถเขียนได.html
-5.  สำหรับการอัปเกรด ให้นำไฟล์ทั้งหมด ยกเว้น omsin.sql และไดเร็คทอรี่ datas/ และไดเร็คทอรี่ settings/ อัปโหลดขึ้นไปแทนที่ไฟล์เดิมบน Server
+1.  ให้อัปโหลดโค้ดทั้งหมดจากที่ดาวน์โหลด ขึ้นไปบน Server
+2.  ในกรณีที่มีการติดตั้งใหม่ ให้เรียกตัวติดตั้ง http://domain.tld/install/ และดำเนินการตามขั้นตอนการติดตั้งจนกว่าจะเสร็จสิ้น
+3.  ลบไดเร็คทอรี่ install/ ออก
+4.  ในกรณีเป็นการอัปเกรด สามารถนำไฟล์ทั้งหมดไปแทนที่ไฟล์เดิม ยกเว้นไดเร็คทอรี่ install/ และทำการเปลี่ยนชื่อฟิลด์ของตาราง ierecord และ category จาก owner_id เป็น account_id
+
+## การกำหนดค่าใน settings/config.php
+หลังการติดตั้งเสร็จเรียบร้อยแล้ว จะมีไฟล์นี้เกิดขึ้นมา สามารถตั้งค่าเพิ่มเติมได้ตามนี้
+
+```
+<?php
+/* config.php */
+return array(
+  'web_title' => 'ออมสิน',
+  'web_description' => 'แอพพลิเคชั่น รายรับ-รายจ่าย ฟรี',
+  'timezone' => 'Asia/Bangkok',
+  /* ข้อมูล Mail Server สำหรับการขอรหัสผ่านใหม่ */
+  'noreply_email' => 'no-reply@domain.tld',
+  'email_charset' => 'utf-8',
+  'email_Host' => 'localhost',
+  'email_Port' => 25,
+  'email_SMTPSecure' => '',
+  /* กำหนดเป็น true ถ้าต้องการใช้งาน phpMailer (สำหรับ Host ที่รองรับ) */
+  'email_use_phpMailer' => false,
+  /* กำหนดเป็น true ถ้าต้องการส่งเมล์แบบระบุ Username และ Password (สำหรับ Host ที่รองรับ) */
+  'email_SMTPAuth' => false,
+  'email_Username' => '',
+  'email_Password' => '',
+  /* Facebook AppID หาได้จาก https://gcms.in.th/howto/%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B8%82%E0%B8%AD_app_id_%E0%B8%88%E0%B8%B2%E0%B8%81_facebook.html */
+  'facebook_appId' => '',
+);
+```
 
 ## การใช้งาน
 
-- สมัครสมาชิก สามารถใช้งานได้ทันที (ส่วนตัว)
+- สมัครสมาชิก สามารถใช้งานได้ทันที
 
 ## ข้อตกลงการนำไปใช้งาน
 

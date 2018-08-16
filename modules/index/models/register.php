@@ -10,7 +10,6 @@
 
 namespace Index\Register;
 
-use Gcms\Email;
 use Kotchasan\Http\Request;
 use Kotchasan\Language;
 use Kotchasan\Validator;
@@ -32,7 +31,7 @@ class Model extends \Kotchasan\Model
     public function submit(Request $request)
     {
         $ret = array();
-        // session, token
+        // session, token, ไม่ใช่โหมดตัวอย่าง
         if ($request->initSession() && $request->isSafe()) {
             // โหมดตัวอย่างไม่สามารถ register ด้วยอีเมล์ได้
             if (self::$cfg->demo_mode == false) {
@@ -70,14 +69,20 @@ class Model extends \Kotchasan\Model
                     $save['fb'] = 0;
                     self::execute($this, $save);
                     // ส่งอีเมล
-                    $replace = array(
-                        '/%NAME%/' => $save['name'],
-                        '/%EMAIL%/' => $save['username'],
-                        '/%PASSWORD%/' => $password,
-                    );
-                    Email::send(2, 'member', $replace, $save['username']);
-                    // คืนค่า
-                    $ret['alert'] = Language::replace('Register successfully, We have sent complete registration information to :email', array(':email' => $save['username']));
+                    $subject = '['.self::$cfg->web_title.'] '.Language::get('Welcome new members');
+                    $msg = "{LNG_Your registration information}<br>\n<br>\n";
+                    $msg .= '{LNG_Username} : '.$save['username']."<br>\n";
+                    $msg .= '{LNG_Password} : '.$password."<br>\n";
+                    $msg .= '{LNG_Name} : '.$save['name'];
+                    $msg = Language::trans($msg);
+                    $err = \Kotchasan\Email::send($save['username'], self::$cfg->noreply_email, $subject, $msg);
+                    if ($err->error()) {
+                        // คืนค่า error
+                        $ret['alert'] = $err->getErrorMessage();
+                    } else {
+                        // คืนค่า
+                        $ret['alert'] = Language::replace('Register successfully, We have sent complete registration information to :email', array(':email' => $save['username']));
+                    }
                     $ret['location'] = 'index.php?action=login';
                     // clear
                     $request->removeToken();

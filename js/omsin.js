@@ -68,18 +68,18 @@ function initIerecord() {
     }
   };
   $G("write_status").addEvent("change", doStatusChanged);
-  findCategory("write_category", "write_owner_id", function() {
+  findCategory("write_category", "write_account_id", function() {
     return $E("write_status").value == "IN" ? 1 : 2;
   });
-  findCategory("write_wallet", "write_owner_id", function() {
+  findCategory("write_wallet", "write_account_id", function() {
     return 4;
   });
   doStatusChanged.call($E("write_status"));
 }
-function findCategory(name, owner_id, typ, count) {
+function findCategory(name, account_id, typ, count) {
   var SearchGet = function() {
     q = "name=" + encodeURIComponent($E(name).value);
-    q += "&id=" + $E(owner_id).value;
+    q += "&id=" + $E(account_id).value;
     q += "&typ=" + typ.call();
     q += "&count=" + (count || 100);
     return q;
@@ -124,7 +124,7 @@ function initModal(id, callback) {
 }
 var doDatabaseReset = function() {
   if (confirm(CONFIRM_RESET_DATABASE)) {
-    if (confirm(CONFIRM_RESET_DATABASE_2)) {
+    if (confirm(CONFIRM_RESET_DATABASE_B)) {
       send(
         WEB_URL + "xhr.php/index/model/database/action",
         "action=reset",

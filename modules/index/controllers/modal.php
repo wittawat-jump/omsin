@@ -22,6 +22,8 @@ use Kotchasan\Http\Request;
 class Controller extends \Kotchasan\Controller
 {
     /**
+     * Controller สำหรับเรียก Modal มาแสดง.
+     *
      * @param Request $request
      */
     public function index(Request $request)

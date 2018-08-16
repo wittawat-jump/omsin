@@ -59,7 +59,7 @@ class View extends \Gcms\View
                 'itemClass' => 'item',
                 'labelClass' => 'g-input icon-category',
                 'label' => '{LNG_Category}',
-                'options' => \Index\Select\Model::ieCategories($index->owner_id, $index->status),
+                'options' => \Index\Select\Model::ieCategories($index->account_id, $index->status),
                 'value' => $index->category_id,
             ));
         } else {
@@ -78,7 +78,7 @@ class View extends \Gcms\View
         }
         if ($index->status == 'INIT') {
             // wallet
-            $wallet = \Index\Select\Model::wallets($index->owner_id);
+            $wallet = \Index\Select\Model::wallets($index->account_id);
             $fieldset->add('text', array(
                 'id' => 'write_wallet_name',
                 'itemClass' => 'item',
@@ -95,7 +95,7 @@ class View extends \Gcms\View
                 'labelClass' => 'g-input icon-wallet',
                 'label' => $label,
                 'disabled' => $disabled || $index->status == 'INIT',
-                'options' => \Index\Select\Model::wallets($index->owner_id),
+                'options' => \Index\Select\Model::wallets($index->account_id),
                 'value' => $index->wallet,
             ));
         }
@@ -147,10 +147,10 @@ class View extends \Gcms\View
             'id' => 'write_id',
             'value' => $index->id,
         ));
-        // owner_id
+        // account_id
         $fieldset->add('hidden', array(
-            'id' => 'write_owner_id',
-            'value' => $index->owner_id,
+            'id' => 'write_account_id',
+            'value' => $index->account_id,
         ));
         // คืนค่าฟอร์ม
 

@@ -116,11 +116,11 @@ class View extends \Gcms\View
             /* ฟังก์ชั่นแสดงผล Footer */
             'onCreateFooter' => array($this, 'onCreateFooter'),
             /* คอลัมน์ที่ไม่ต้องแสดงผล */
-            'hideColumns' => array('id', 'owner_id', 'status', 'expense', 'transfer_to'),
+            'hideColumns' => array('id', 'account_id', 'status', 'expense', 'transfer_to'),
             /* คอลัมน์ที่สามารถค้นหาได้ */
             'searchColumns' => array('comment'),
             /* ตั้งค่าการกระทำของของตัวเลือกต่างๆ ด้านล่างตาราง ซึ่งจะใช้ร่วมกับการขีดถูกเลือกแถว */
-            'action' => 'index.php/index/model/iereport/action',
+            'action' => 'index.php/index/model/search/action',
             'actionCallback' => 'dataTableActionCallback',
             'actions' => array(
                 array(
@@ -136,12 +136,15 @@ class View extends \Gcms\View
             'headers' => array(
                 'create_date' => array(
                     'text' => '{LNG_date}',
+                    'sort' => 'create_date',
                 ),
                 'category_id' => array(
                     'text' => '{LNG_Category}',
+                    'sort' => 'category_id',
                 ),
                 'wallet' => array(
                     'text' => '{LNG_Wallet}',
+                    'sort' => 'wallet',
                 ),
                 'comment' => array(
                     'text' => '{LNG_Annotation}',

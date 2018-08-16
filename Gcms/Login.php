@@ -32,7 +32,7 @@ class Login extends \Kotchasan\Login implements \Kotchasan\LoginInterface
     {
         $login = self::isMember();
 
-        return isset($login['active']) && $login['active'] == 1 ? $login : null;
+        return isset($login['status']) && $login['status'] == 1 ? $login : null;
     }
 
     /**
@@ -175,29 +175,30 @@ class Login extends \Kotchasan\Login implements \Kotchasan\LoginInterface
             if ($search === false) {
                 self::$login_message = Language::get('not a registered user');
             } else {
-                // สุ่มรหัสผ่านใหม่
-                $password = \Kotchasan\Text::rndname(6);
-                // ข้อมูลอีเมล
-                $replace = array(
-                    '/%PASSWORD%/' => $password,
-                    '/%EMAIL%/' => $search->$field,
-                );
-                // send mail
-                $err = \Gcms\Email::send(3, 'member', $replace, $search->$field);
-                if (!$err->error()) {
-                    // อัปเดทรหัสผ่านใหม่
-                    $salt = uniqid();
-                    $model->db()->update($table, (int) $search->id, array(
-                        'salt' => $salt,
-                        'password' => sha1($password.$salt),
-                    ));
+                // ขอรหัสผ่านใหม่
+                $err = \Index\Forgot\Model::execute($search->id, \Kotchasan\Text::rndname(6), $search->$field);
+                if ($err == '') {
                     // คืนค่า
                     self::$login_message = Language::get('Your message was sent successfully');
                     self::$request = $request->withQueryParams(array('action' => 'login'));
                 } else {
-                    self::$login_message = $err->getErrorMessage();
+                    // ไม่สำเร็จ
+                    self::$login_message = $err;
                 }
             }
         }
+    }
+
+    /**
+     * ฟังก์ชั่นตรวจสอบว่า เป็นสมาชิกตัวอย่างหรือไม่
+     * คืนค่าข้อมูลสมาชิก (แอเรย์) ถ้าไม่ใช่สมาชิกตัวอย่าง, null ถ้าเป็นสมาชิกตัวอย่างและเปิดโหมดตัวอย่างไว้.
+     *
+     * @param array|null $login
+     *
+     * @return array|null
+     */
+    public static function notDemoMode($login)
+    {
+        return $login && !empty($login['fb']) && self::$cfg->demo_mode ? null : $login;
     }
 }

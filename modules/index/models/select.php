@@ -24,18 +24,16 @@ class Model extends \Kotchasan\Model
     /**
      * อ่านปีที่มีการทำรายการ อย่างน้อยต้องมีปีปัจจุบัน.
      *
-     * @param int $owner_id
+     * @param int $account_id
      *
      * @return array
      */
-    public static function getYears($owner_id)
+    public static function getYears($account_id)
     {
-        // Model
-        $model = new static();
-        $query = $model->db()->createQuery()
+        $query = static::createQuery()
             ->select(Sql::Year('create_date', 'year'))
             ->from('ierecord')
-            ->where(array('owner_id', $owner_id))
+            ->where(array('account_id', $account_id))
             ->groupBy(Sql::Year('create_date'))
             ->cacheOn()
             ->toArray();
@@ -55,48 +53,46 @@ class Model extends \Kotchasan\Model
     /**
      * กระเป๋าเงิน.
      *
-     * @param int $owner_id
+     * @param int $account_id
      *
      * @return array
      */
-    public static function wallets($owner_id)
+    public static function wallets($account_id)
     {
-        return self::toSelect($owner_id, 4);
+        return self::toSelect($account_id, 4);
     }
 
     /**
      * หมวดหมู่รายรับ/รายจ่าย.
      *
-     * @param int    $owner_id
-     * @param string $status   รายรับ IN / รายจ่าย OUT
+     * @param int    $account_id
+     * @param string $status     รายรับ IN / รายจ่าย OUT
      *
      * @return array
      */
-    public static function ieCategories($owner_id, $status)
+    public static function ieCategories($account_id, $status)
     {
-        return self::toSelect($owner_id, $status == 'OUT' ? 2 : 1);
+        return self::toSelect($account_id, $status == 'OUT' ? 2 : 1);
     }
 
     /**
      * อ่านข้อมูลลงใน select.
      *
-     * @param int $owner_id
+     * @param int $account_id
      * @param int $typ
      *
      * @return array
      */
-    private static function toSelect($owner_id, $typ)
+    private static function toSelect($account_id, $typ)
     {
-        // Model
-        $model = new static();
-        $query = $model->db()->createQuery()
+        $query = static::createQuery()
             ->select('category_id', 'topic')
             ->from('category')
             ->where(array(
-                array('owner_id', $owner_id),
+                array('account_id', $account_id),
                 array('id', $typ),
             ))
-            ->order('owner_id DESC', 'topic')
+            ->order('account_id DESC', 'topic')
             ->cacheOn()
             ->toArray();
         $result = array();

@@ -80,7 +80,7 @@ class Model
             ),
             'signout' => array(
                 'text' => '{LNG_Sign out}',
-                'url' => 'index.php?action=logout',
+                'url' => WEB_URL.'index.php?action=logout',
             ),
         );
 

@@ -26,13 +26,13 @@ class Model extends \Kotchasan\Model
     /**
      * ฟังก์ชั่นอ่านหมวดหมู่ หรือ บันทึก ถ้าไม่มีหมวดหมู่.
      *
-     * @param int    $owner_id
+     * @param int    $account_id
      * @param int    $type_id
      * @param string $topic
      *
      * @return int คืนค่า category_id
      */
-    private static function checkCategory($owner_id, $type_id, $topic)
+    private static function checkCategory($account_id, $type_id, $topic)
     {
         $topic = trim($topic);
         if ($topic == '') {
@@ -42,7 +42,7 @@ class Model extends \Kotchasan\Model
             $search = $model->db()->createQuery()
                 ->from('category')
                 ->where(array(
-                    array('owner_id', $owner_id),
+                    array('account_id', $account_id),
                     array('id', $type_id),
                     array('topic', $topic),
                 ))
@@ -56,7 +56,7 @@ class Model extends \Kotchasan\Model
                 $search = $model->db()->createQuery()
                     ->from('category')
                     ->where(array(
-                        array('owner_id', $owner_id),
+                        array('account_id', $account_id),
                         array('id', $type_id),
                     ))
                     ->toArray()
@@ -64,7 +64,7 @@ class Model extends \Kotchasan\Model
                 $category_id = empty($search['category_id']) ? 1 : (1 + (int) $search['category_id']);
                 // save
                 $model->db()->insert($model->getTableName('category'), array(
-                    'owner_id' => $owner_id,
+                    'account_id' => $account_id,
                     'id' => $type_id,
                     'category_id' => $category_id,
                     'topic' => $topic,
@@ -78,51 +78,51 @@ class Model extends \Kotchasan\Model
     /**
      * ประเภทรายรับ.
      *
-     * @param int    $owner_id
+     * @param int    $account_id
      * @param string $topic
      *
      * @return int คืนค่า category_id
      */
-    public static function newIncome($owner_id, $topic)
+    public static function newIncome($account_id, $topic)
     {
-        return self::checkCategory($owner_id, 1, $topic);
+        return self::checkCategory($account_id, 1, $topic);
     }
 
     /**
      * รายการรายจ่าย.
      *
-     * @param int    $owner_id
+     * @param int    $account_id
      * @param string $topic
      *
      * @return int คืนค่า category_id
      */
-    public static function newExpensive($owner_id, $topic)
+    public static function newExpensive($account_id, $topic)
     {
-        return self::checkCategory($owner_id, 2, $topic);
+        return self::checkCategory($account_id, 2, $topic);
     }
 
     /**
      * กระเป๋าเงิน.
      *
-     * @param int    $owner_id
+     * @param int    $account_id
      * @param string $topic
      *
      * @return int คืนค่า category_id
      */
-    public static function newWallet($owner_id, $topic)
+    public static function newWallet($account_id, $topic)
     {
-        return self::checkCategory($owner_id, 4, $topic);
+        return self::checkCategory($account_id, 4, $topic);
     }
 
     /**
      * อ่านข้อมูลหมวดหมู่.
      *
-     * @param int $owner_id
+     * @param int $account_id
      * @param int $typ
      *
      * @return array
      */
-    public static function all($owner_id, $typ)
+    public static function all($account_id, $typ)
     {
         // Model
         $model = new static();
@@ -131,7 +131,7 @@ class Model extends \Kotchasan\Model
             ->select()
             ->from('category')
             ->where(array(
-                array('owner_id', $owner_id),
+                array('account_id', $account_id),
                 array('id', $typ),
             ))
             ->order('category_id')
@@ -155,7 +155,7 @@ class Model extends \Kotchasan\Model
                 $search = $this->db()->createQuery()
                     ->from('category')
                     ->where(array(
-                        array('owner_id', (int) $match[1]),
+                        array('account_id', (int) $match[1]),
                         array('category_id', (int) $match[2]),
                         array('id', (int) $match[3]),
                     ))
@@ -164,7 +164,7 @@ class Model extends \Kotchasan\Model
                 $value = $request->post('value')->topic();
                 if ($value != '') {
                     $this->db()->update($this->getTableName('category'), array(
-                        array('owner_id', $search['owner_id']),
+                        array('account_id', $search['account_id']),
                         array('category_id', $search['category_id']),
                         array('id', $search['id']),
                     ), array('topic' => $value));

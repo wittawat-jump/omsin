@@ -47,7 +47,7 @@ class View extends \Gcms\View
             'title' => '{LNG_Recording}',
         ));
         // กระเป๋าเงิน
-        $wallets = \Index\Select\Model::wallets($owner->id);
+        $wallets = \Index\Wallet\Model::toSelect($owner->id);
         // ตัวเลือกว่าจะทำอะไร
         $status = array();
         if (!empty($wallets)) {
@@ -121,6 +121,7 @@ class View extends \Gcms\View
             'id' => 'write_amount',
             'itemClass' => 'item',
             'labelClass' => 'g-input icon-money',
+            'data-keyboard' => '0123456789.',
             'label' => '{LNG_Amount} ('.$currency_units[self::$cfg->currency_unit].')',
         ));
         // create_date
@@ -153,9 +154,9 @@ class View extends \Gcms\View
             'id' => 'write_id',
             'value' => 0,
         ));
-        // owner_id
+        // account_id
         $fieldset->add('hidden', array(
-            'id' => 'write_owner_id',
+            'id' => 'write_account_id',
             'value' => $owner->id,
         ));
         // Javascript

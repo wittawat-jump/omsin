@@ -28,7 +28,7 @@ class Model extends \Kotchasan\Model
      *
      * @return array|null คืนค่า array ข้อมูลสมาชิก ไม่พบคืนค่า null
      */
-    public static function get($owner_id)
+    public static function get($account_id)
     {
         // วันนี้
         $today = date('Y-m-d');
@@ -36,16 +36,16 @@ class Model extends \Kotchasan\Model
         $model = new \Kotchasan\Model();
         // query ข้อมูล ทั้งหมด
         $q1 = $model->db()->createQuery()
-            ->select('wallet', 'status', Sql::SUM('income', 'income'), Sql::SUM('expense', 'expense'), 'owner_id')
+            ->select('wallet', 'status', Sql::SUM('income', 'income'), Sql::SUM('expense', 'expense'), 'account_id')
             ->from('ierecord')
-            ->where(array('owner_id', $owner_id))
+            ->where(array('account_id', $account_id))
             ->groupBy('wallet', 'status');
         // query ข้อมูลโอนเงินระหว่างบัญชีไปเป็นรายรับของบัญชีปลายทาง
         $q2 = $model->db()->createQuery()
-            ->select('transfer_to wallet', 'status', Sql::SUM('expense', 'income'), '0 expense', 'owner_id')
+            ->select('transfer_to wallet', 'status', Sql::SUM('expense', 'income'), '0 expense', 'account_id')
             ->from('ierecord')
             ->where(array(
-                array('owner_id', $owner_id),
+                array('account_id', $account_id),
                 array('status', 'TRANSFER'),
             ))
             ->groupBy('transfer_to');
@@ -54,7 +54,7 @@ class Model extends \Kotchasan\Model
             ->select('G.topic', 'Q.status', 'Q.income', 'Q.expense')
             ->from(array($model->db()->createQuery()->union($q1, $q2), 'Q'))
             ->join('category G', 'LEFT', array(
-                array('G.owner_id', 'Q.owner_id'),
+                array('G.account_id', 'Q.account_id'),
                 array('G.id', 4),
                 array('G.category_id', 'Q.wallet'),
             ));
@@ -63,7 +63,7 @@ class Model extends \Kotchasan\Model
             ->select('0 topic', 'F.status', Sql::SUM('F.income', 'income'), Sql::SUM('F.expense', 'expense'))
             ->from('ierecord F')
             ->where(array(
-                array('F.owner_id', $owner_id),
+                array('F.account_id', $account_id),
                 array('F.create_date', $today),
                 array('F.status', array('IN', 'OUT')),
             ));

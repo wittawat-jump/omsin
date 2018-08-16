@@ -10,10 +10,10 @@
 
 namespace Index\Database;
 
+use Gcms\Login;
 use Kotchasan\Http\Request;
 use Kotchasan\Http\Response;
 use Kotchasan\Language;
-use Kotchasan\Login;
 
 /**
  * module=database.
@@ -44,9 +44,9 @@ class Model extends \Kotchasan\Model
             $ret = array();
             if ($request->post('action')->toString() == 'reset') {
                 // ลบข้อมูลทั้งหมดของ User
-                $owner_id = (int) $login['id'];
-                $this->db()->delete($this->getTableName('ierecord'), array('owner_id', $owner_id), 0);
-                $this->db()->delete($this->getTableName('category'), array('owner_id', $owner_id), 0);
+                $account_id = (int) $login['id'];
+                $this->db()->delete($this->getTableName('ierecord'), array('account_id', $account_id), 0);
+                $this->db()->delete($this->getTableName('category'), array('account_id', $account_id), 0);
                 // คืนค่า
                 $ret['alert'] = Language::get('Deleted successfully');
             }
@@ -85,12 +85,12 @@ class Model extends \Kotchasan\Model
     public function export(Request $request)
     {
         if ($request->initSession() && $request->isReferer() && $login = Login::isMember()) {
-            $owner_id = (int) $login['id'];
+            $account_id = (int) $login['id'];
             // query ข้อมูล category
             $query = $this->db()->createQuery()
                 ->select('category_id', 'topic', 'id')
                 ->from('category')
-                ->where(array('owner_id', $owner_id))
+                ->where(array('account_id', $account_id))
                 ->toArray();
             $category = array();
             $wallet = array();
@@ -107,7 +107,7 @@ class Model extends \Kotchasan\Model
             $query = $this->db()->createQuery()
                 ->select('category_id category', 'status', 'wallet', 'expense', 'income', 'create_date', 'comment', 'transfer_to')
                 ->from('ierecord')
-                ->where(array('owner_id', $owner_id))
+                ->where(array('account_id', $account_id))
                 ->order('create_date')
                 ->toArray();
             $datas = array();
@@ -147,9 +147,10 @@ class Model extends \Kotchasan\Model
      */
     public function submit(Request $request)
     {
+        // session, token, สามารถแก้ไขได้
         if ($request->initSession() && $request->isSafe() && $login = Login::isMember()) {
             // สมาชิก
-            $owner_id = (int) $login['id'];
+            $account_id = (int) $login['id'];
             // ชื่อตาราง
             $category_table = $this->getTableName('category');
             $ierecord_table = $this->getTableName('ierecord');
@@ -157,7 +158,7 @@ class Model extends \Kotchasan\Model
             $wallet = array();
             $category_id = 0;
             // query ข้อมูล category
-            $sql = "SELECT `category_id`,`topic`,`id` FROM `$category_table` WHERE `owner_id`=$owner_id";
+            $sql = "SELECT `category_id`,`topic`,`id` FROM `$category_table` WHERE `account_id`=$account_id";
             foreach ($this->db()->customQuery($sql, true) as $item) {
                 $category_id = max($category_id, $item['category_id']);
                 if ($item['id'] == 1) {
@@ -168,7 +169,7 @@ class Model extends \Kotchasan\Model
                     $wallet[$item['topic']] = $item['category_id'];
                 }
             }
-            $sql = "SELECT MAX(`id`) AS `id` FROM `$ierecord_table` WHERE `owner_id`=$owner_id";
+            $sql = "SELECT MAX(`id`) AS `id` FROM `$ierecord_table` WHERE `account_id`=$account_id";
             $ierecord = $this->db()->customQuery($sql, true);
             if (sizeof($ierecord) == 1) {
                 $ierecord_id = $ierecord[0]['id'];
@@ -191,7 +192,7 @@ class Model extends \Kotchasan\Model
                                 if ($r > 0 && empty($ret)) {
                                     ++$ierecord_id;
                                     $save = array(
-                                        'owner_id' => $owner_id,
+                                        'account_id' => $account_id,
                                         'id' => $ierecord_id,
                                         'category_id' => preg_replace('/[\r\n\s\t]+/', ' ', trim(strip_tags($data[0]))),
                                         'wallet' => preg_replace('/[\r\n\s\t]+/', ' ', trim(strip_tags($data[1]))),
@@ -207,9 +208,9 @@ class Model extends \Kotchasan\Model
                                         $save['status'] = 'TRANSFER';
                                         foreach (explode('/', $save['wallet']) as $n => $w) {
                                             if ($n == 0) {
-                                                $save['wallet'] = $this->getWallet($wallet, $category_id, $owner_id, $category_table, $w);
+                                                $save['wallet'] = $this->getWallet($wallet, $category_id, $account_id, $category_table, $w);
                                             } else {
-                                                $save['transfer_to'] = $this->getWallet($wallet, $category_id, $owner_id, $category_table, $w);
+                                                $save['transfer_to'] = $this->getWallet($wallet, $category_id, $account_id, $category_table, $w);
                                             }
                                         }
                                         $save['income'] = 0;
@@ -221,19 +222,19 @@ class Model extends \Kotchasan\Model
                                         // เพิ่มกระเป๋าเงิน
                                         $save['category_id'] = 0;
                                         $save['status'] = 'INIT';
-                                        $save['wallet'] = $this->getWallet($wallet, $category_id, $owner_id, $category_table, $save['wallet']);
+                                        $save['wallet'] = $this->getWallet($wallet, $category_id, $account_id, $category_table, $save['wallet']);
                                         $save['expense'] = 0;
                                     } elseif ($save['expense'] > 0) {
                                         // รายจ่าย
                                         $save['status'] = 'OUT';
-                                        $save['category_id'] = $this->getCategory($category, 'OUT', $category_id, $owner_id, $category_table, $save['category_id']);
-                                        $save['wallet'] = $this->getWallet($wallet, $category_id, $owner_id, $category_table, $save['wallet']);
+                                        $save['category_id'] = $this->getCategory($category, 'OUT', $category_id, $account_id, $category_table, $save['category_id']);
+                                        $save['wallet'] = $this->getWallet($wallet, $category_id, $account_id, $category_table, $save['wallet']);
                                         $save['income'] = 0;
                                     } else {
                                         // รายรับ
                                         $save['status'] = 'IN';
-                                        $save['category_id'] = $this->getCategory($category, 'IN', $category_id, $owner_id, $category_table, $save['category_id']);
-                                        $save['wallet'] = $this->getWallet($wallet, $category_id, $owner_id, $category_table, $save['wallet']);
+                                        $save['category_id'] = $this->getCategory($category, 'IN', $category_id, $account_id, $category_table, $save['category_id']);
+                                        $save['wallet'] = $this->getWallet($wallet, $category_id, $account_id, $category_table, $save['wallet']);
                                         $save['expense'] = 0;
                                     }
                                     if ($save['expense'] > 0 || $save['income'] > 0) {
@@ -268,22 +269,22 @@ class Model extends \Kotchasan\Model
     }
 
     /**
-     * @param $wallet
-     * @param $category_id
-     * @param $owner_id
-     * @param $category_table
-     * @param $topic
+     * @param  $wallet
+     * @param  $category_id
+     * @param  $account_id
+     * @param  $category_table
+     * @param  $topic
      *
      * @return mixed
      */
-    private function getWallet(&$wallet, &$category_id, $owner_id, $category_table, $topic)
+    private function getWallet(&$wallet, &$category_id, $account_id, $category_table, $topic)
     {
         if (isset($wallet[$topic])) {
             return $wallet[$topic];
         } else {
             ++$category_id;
             $this->db()->insert($category_table, array(
-                'owner_id' => $owner_id,
+                'account_id' => $account_id,
                 'id' => 4,
                 'category_id' => $category_id,
                 'topic' => $topic,
@@ -295,16 +296,16 @@ class Model extends \Kotchasan\Model
     }
 
     /**
-     * @param $category
-     * @param $status
-     * @param $category_id
-     * @param $owner_id
-     * @param $category_table
-     * @param $topic
+     * @param  $category
+     * @param  $status
+     * @param  $category_id
+     * @param  $account_id
+     * @param  $category_table
+     * @param  $topic
      *
      * @return mixed
      */
-    private function getCategory(&$category, $status, &$category_id, $owner_id, $category_table, $topic)
+    private function getCategory(&$category, $status, &$category_id, $account_id, $category_table, $topic)
     {
         if (isset($category[$status][$topic])) {
             // มีหมวดอยู่แล้ว
@@ -313,7 +314,7 @@ class Model extends \Kotchasan\Model
             // หมวดหมู่ใหม่
             ++$category_id;
             $this->db()->insert($category_table, array(
-                'owner_id' => $owner_id,
+                'account_id' => $account_id,
                 'id' => $status == 'IN' ? 1 : 2,
                 'category_id' => $category_id,
                 'topic' => $topic,

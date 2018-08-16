@@ -28,29 +28,27 @@ class Model extends \Kotchasan\Model
     /**
      * อ่านข้อมูล บัญชีรายรัย-รายจ่าย ที่ $id.
      *
-     * @param int  $owner_id
+     * @param int  $account_id
      * @param int  $id
-     * @param bool $new      false (default) คืนค่า null ถ้าไม่พบ, true คืนค่ารายการใหม่ถ้า $id = 0
+     * @param bool $new        false (default) คืนค่า null ถ้าไม่พบ, true คืนค่ารายการใหม่ถ้า $id = 0
      *
      * @return object|null
      */
-    public static function get($owner_id, $id, $new = false)
+    public static function get($account_id, $id, $new = false)
     {
         if ($id > 0) {
             // แก้ไข, อ่านรายการที่เลือก
-            $model = new \Kotchasan\Model();
-
-            return $model->db()->createQuery()
+            return static::createQuery()
                 ->from('ierecord')
                 ->where(array(
-                    array('owner_id', (int) $owner_id),
+                    array('account_id', (int) $account_id),
                     array('id', (int) $id),
                 ))
                 ->first();
         } elseif ($new) {
             // ใหม่
             return (object) array(
-                'owner_id' => $owner_id,
+                'account_id' => $account_id,
                 'id' => 0,
             );
         }
@@ -69,11 +67,11 @@ class Model extends \Kotchasan\Model
         if ($request->initSession() && $request->isSafe() && $login = Login::isMember()) {
             $ret = array();
             // รับค่าจากการ POST
-            $owner_id = $request->post('write_owner_id')->toInt();
+            $account_id = $request->post('write_account_id')->toInt();
             $status = $request->post('write_status')->filter('A-Z');
             // รายการที่เลือก
-            $index = self::get($owner_id, $request->post('write_id')->toInt(), true);
-            if ($index && $index->owner_id == $login['id']) {
+            $index = self::get($account_id, $request->post('write_id')->toInt(), true);
+            if ($index && $index->account_id == $login['id']) {
                 if ($index->id > 0) {
                     // แก้ไขใช้สถานะเดิม
                     $status = $index->status;
@@ -118,7 +116,7 @@ class Model extends \Kotchasan\Model
         if ($index->id == 0) {
             // หมวดหมู่ (รายการใหม่)
             $method = $status == 'IN' ? 'newIncome' : 'newExpensive';
-            $category_id = \Index\Category\Model::$method($index->owner_id, $request->post('write_category')->topic());
+            $category_id = \Index\Category\Model::$method($index->account_id, $request->post('write_category')->topic());
         } else {
             // หมวดหมู่ (แก้ไข)
             $category_id = $request->post('write_category')->toInt();
@@ -152,15 +150,15 @@ class Model extends \Kotchasan\Model
             }
             if ($index->id == 0) {
                 // ใหม่
-                $save['id'] = Sql::NEXT('id', $table_name, array('owner_id', $index->owner_id));
-                $save['owner_id'] = $index->owner_id;
+                $save['id'] = Sql::NEXT('id', $table_name, array('account_id', $index->account_id));
+                $save['account_id'] = $index->account_id;
                 $save['status'] = $status;
                 $save['transfer_to'] = 0;
                 $model->db()->insert($table_name, $save);
             } else {
                 // แก้ไข
                 $where = array(
-                    array('owner_id', $index->owner_id),
+                    array('account_id', $index->account_id),
                     array('id', $index->id),
                 );
                 $model->db()->update($table_name, $where, $save);
@@ -193,7 +191,7 @@ class Model extends \Kotchasan\Model
             $ret['ret_write_amount'] = 'Please fill in';
         } else {
             // อ่านจำนวนเงินในกระเป๋า
-            $money = \Index\Wallet\Model::getMoney($index->owner_id, $from);
+            $money = \Index\Wallet\Model::getMoney($index->account_id, $from);
             if ($amount > $money) {
                 // จำนวนเงินที่จะโอนมากกว่าในกระเป๋า
                 $ret['ret_write_amount'] = Language::replace('Fill in more money in pocket (:amount)', array(':amount' => Currency::format($money)));
@@ -201,11 +199,11 @@ class Model extends \Kotchasan\Model
                 $model = new \Kotchasan\Model();
                 $table_name = $model->getTableName('ierecord');
                 // query ID ถัดไป
-                $q1 = Sql::NEXT('id', $table_name, array('owner_id', $index->owner_id), 'id');
+                $q1 = Sql::NEXT('id', $table_name, array('account_id', $index->account_id), 'id');
                 $query = $model->db()->createQuery()->toArray()->first($q1);
                 // โอนเงินออก
                 $save = array(
-                    'owner_id' => $index->owner_id,
+                    'account_id' => $index->account_id,
                     'id' => $query['id'],
                     'comment' => $request->post('write_comment')->topic(),
                     'create_date' => $request->post('write_create_date')->date(),
@@ -243,7 +241,7 @@ class Model extends \Kotchasan\Model
             $search = $model->db()->createQuery()
                 ->from('category')
                 ->where(array(
-                    array('owner_id', $index->owner_id),
+                    array('account_id', $index->account_id),
                     array('id', 4),
                     array('topic', $wallet),
                 ))
@@ -257,7 +255,7 @@ class Model extends \Kotchasan\Model
                 $search = $model->db()->createQuery()
                     ->from('category')
                     ->where(array(
-                        array('owner_id', $index->owner_id),
+                        array('account_id', $index->account_id),
                         array('id', 4),
                     ))
                     ->toArray()
@@ -265,7 +263,7 @@ class Model extends \Kotchasan\Model
                 $wallet_id = empty($search['category_id']) ? 1 : (1 + (int) $search['category_id']);
                 // สร้างกระเป๋าเงิน
                 $model->db()->insert($model->getTableName('category'), array(
-                    'owner_id' => $index->owner_id,
+                    'account_id' => $index->account_id,
                     'id' => 4,
                     'category_id' => $wallet_id,
                     'topic' => $wallet,
@@ -274,8 +272,8 @@ class Model extends \Kotchasan\Model
                 if ($amount > 0) {
                     // บันทึก ยอดยกมา ถ้ามีการระบุจำนวนเงินมาด้วย
                     $model->db()->insert($table_name, array(
-                        'owner_id' => $index->owner_id,
-                        'id' => Sql::NEXT('id', $table_name, array('owner_id', $index->owner_id)),
+                        'account_id' => $index->account_id,
+                        'id' => Sql::NEXT('id', $table_name, array('account_id', $index->account_id)),
                         'comment' => $request->post('write_comment')->topic(),
                         'create_date' => $request->post('write_create_date')->date(),
                         'category_id' => 0,
@@ -290,7 +288,7 @@ class Model extends \Kotchasan\Model
         } else {
             // แก้ไขรายการ ยอดยกมา
             $where = array(
-                array('owner_id', $index->owner_id),
+                array('account_id', $index->account_id),
                 array('id', $index->id),
             );
             $model->db()->update($table_name, $where, array(

@@ -26,14 +26,14 @@ class View extends \Gcms\View
      * ฟอร์มแก้ไขหมวดหมู่.
      *
      * @param Request $request
-     * @param int     $owner_id
+     * @param int     $account_id
      * @param int     $typ
      *
      * @return string
      */
-    public function render(Request $request, $owner_id, $typ)
+    public function render(Request $request, $account_id, $typ)
     {
-        $datas = \Index\Category\Model::all($owner_id, $typ);
+        $datas = \Index\Category\Model::all($account_id, $typ);
         if (empty($datas)) {
             $list = Html::create('aside', array(
                 'class' => 'error',
@@ -53,7 +53,7 @@ class View extends \Gcms\View
                     'class' => 'no',
                 ));
                 $row->add('span', array(
-                    'id' => 'category_name_'.$owner_id.'_'.$item['category_id'].'_'.$typ,
+                    'id' => 'category_name_'.$account_id.'_'.$item['category_id'].'_'.$typ,
                     'innerHTML' => $item['topic'],
                     'title' => '{LNG_click to edit}',
                 ));

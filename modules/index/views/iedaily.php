@@ -80,7 +80,7 @@ class View extends \Gcms\View
             /* ฟังก์ชั่นแสดงผล Footer */
             'onCreateFooter' => array($this, 'onCreateFooter'),
             /* คอลัมน์ที่ไม่ต้องแสดงผล */
-            'hideColumns' => array('id', 'owner_id', 'expense', 'status', 'transfer_to'),
+            'hideColumns' => array('id', 'account_id', 'expense', 'status', 'transfer_to'),
             /* ตั้งค่าการกระทำของของตัวเลือกต่างๆ ด้านล่างตาราง ซึ่งจะใช้ร่วมกับการขีดถูกเลือกแถว */
             'action' => 'index.php/index/model/iereport/action',
             'actionCallback' => 'dataTableActionCallback',

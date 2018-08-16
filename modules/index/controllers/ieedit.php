@@ -56,7 +56,7 @@ class Controller extends \Gcms\Controller
                 $ul->appendChild('<li><a class="icon-home" href="index.php">{LNG_Home}</a></li>');
                 $ul->appendChild('<li><span>{LNG_Edit}</span></li>');
                 $section->add('header', array(
-                    'innerHTML' => '<h2 class="icon-write">'.$title.'</h2>',
+                    'innerHTML' => '<h2 class="icon-write">'.$this->title.'</h2>',
                 ));
                 $section->add('a', array(
                     'id' => 'ierecord',

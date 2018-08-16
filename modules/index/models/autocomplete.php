@@ -36,10 +36,10 @@ class Model extends \Kotchasan\Model
                 ->select('category_id id', 'topic name')
                 ->from('category')
                 ->where(array(
-                    array('owner_id', $request->post('id')->toInt()),
+                    array('account_id', $request->post('id')->toInt()),
                     array('id', $request->post('typ')->toInt()),
                 ))
-                ->order('owner_id DESC', 'topic')
+                ->order('account_id DESC', 'topic')
                 ->limit($request->post('count')->toInt())
                 ->toArray();
             if ($search != '') {
