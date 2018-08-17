@@ -13,7 +13,7 @@ namespace Index\Search;
 use Kotchasan\Html;
 use Kotchasan\Http\Request;
 use Kotchasan\Language;
-use Kotchasan\Login;
+use Gcms\Login;
 
 /**
  * module=search.
