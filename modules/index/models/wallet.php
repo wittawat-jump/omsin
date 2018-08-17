@@ -77,18 +77,21 @@ class Model extends \Kotchasan\Model
                 array('account_id', $account_id),
                 array('status', 'TRANSFER'),
             ));
-        $query = static::createQuery()
-            ->select('wallet', 'C.topic', Sql::create('SUM(`income`-`expense`) AS `money`'))
+        $q3 = static::createQuery()
+            ->select('wallet', Sql::create('SUM(`income`-`expense`) AS `money`'))
             ->from(array(static::createQuery()->unionAll($q1, $q2), 'I'))
-            ->join('category C', 'INNER', array(
+            ->groupBy('wallet');
+        $query = static::createQuery()
+            ->select('C.category_id', 'C.topic', 'M.money')
+            ->from('category C')
+            ->join(array($q3, 'M'), 'LEFT', array(array('M.wallet', 'C.category_id')))
+            ->where(array(
                 array('C.account_id', $account_id),
                 array('C.id', 4),
-                array('C.category_id', 'I.wallet'),
-            ))
-            ->groupBy('wallet');
+            ));
         $result = array();
         foreach ($query->execute() as $item) {
-            $result[$item->wallet] = $item->topic.' ('.Currency::format($item->money).')';
+            $result[$item->category_id] = $item->topic.' ('.Currency::format($item->money).')';
         }
 
         return $result;
