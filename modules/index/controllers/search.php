@@ -40,7 +40,7 @@ class Controller extends \Gcms\Controller
         if ($login = Login::isMember()) {
             // ค่าที่ส่งมา
             $index = array(
-                'id' => $login['id'],
+                'account_id' => $login['account_id'],
                 'year' => $request->request('year', date('Y'))->toInt(),
                 'month' => $request->request('month', date('m'))->toInt(),
                 'wallet' => $request->request('wallet', 0)->toInt(),

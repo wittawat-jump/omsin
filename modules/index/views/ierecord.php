@@ -47,7 +47,7 @@ class View extends \Gcms\View
             'title' => '{LNG_Recording}',
         ));
         // กระเป๋าเงิน
-        $wallets = \Index\Wallet\Model::toSelect($owner->id);
+        $wallets = \Index\Wallet\Model::toSelect($owner->account_id);
         // ตัวเลือกว่าจะทำอะไร
         $status = array();
         if (!empty($wallets)) {
@@ -157,7 +157,7 @@ class View extends \Gcms\View
         // account_id
         $fieldset->add('hidden', array(
             'id' => 'write_account_id',
-            'value' => $owner->id,
+            'value' => $owner->account_id,
         ));
         // Javascript
         $form->script('initIerecord();');

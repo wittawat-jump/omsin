@@ -37,21 +37,21 @@ class View extends \Gcms\View
         $datas = array();
         $total_income = 0;
         $total_expense = 0;
-        foreach (\Index\Dashboard\Model::get((int) $login['id']) as $item) {
+        foreach (\Index\Dashboard\Model::get((int) $login['account_id']) as $item) {
             if ($item['topic'] === '0') {
                 $today = $item;
             } else {
-                if ($item['status'] == 'IN' || $item['status'] == 'INIT' || $item['status'] == 'TRANSFER') {
+                if (in_array($item['status'], array('IN', 'INIT', 'TRANSFER'))) {
                     if (isset($datas[$item['topic']])) {
                         $datas[$item['topic']] += $item['income'];
                     } else {
                         $datas[$item['topic']] = $item['income'];
                     }
                 }
-                if ($item['status'] == 'IN' || $item['status'] == 'INIT') {
+                if (in_array($item['status'], array('IN', 'INIT'))) {
                     $total_income += $item['income'];
                 }
-                if ($item['status'] == 'OUT' || $item['status'] == 'TRANSFER') {
+                if (in_array($item['status'], array('OUT', 'TRANSFER'))) {
                     if (isset($datas[$item['topic']])) {
                         $datas[$item['topic']] -= $item['expense'];
                     } else {

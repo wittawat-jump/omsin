@@ -12,6 +12,8 @@ namespace Gcms;
 
 use Kotchasan\Http\Request;
 use Kotchasan\Language;
+use Kotchasan\Password;
+use Kotchasan\Text;
 
 /**
  * คลาสสำหรับตรวจสอบการ Login.
@@ -89,7 +91,7 @@ class Login extends \Kotchasan\Login implements \Kotchasan\LoginInterface
             $where[] = array("U.{$field}", $params['username']);
         }
         $query = \Kotchasan\Model::createQuery()
-            ->select()
+            ->select('U.*', 'U.id account_id')
             ->from('user U')
             ->where($where, 'OR')
             ->order('U.status DESC')
@@ -114,6 +116,134 @@ class Login extends \Kotchasan\Login implements \Kotchasan\LoginInterface
         } else {
             return $login_result;
         }
+    }
+
+    /**
+     * ตรวจสอบการ login เมื่อมีการเรียกใช้ class new Login
+     * action=logout ออกจากระบบ
+     * มาจากการ submit ตรวจสอบการ login
+     * ถ้าไม่มีทั้งสองส่วนด้านบน จะตรวจสอบการ login จาก session และ cookie ตามลำดับ.
+     *
+     * @return \static
+     */
+    public static function create($check = false)
+    {
+        // create class
+        $login = new static();
+        // การเข้ารหัส
+        $pw = new Password(self::$cfg->password_key);
+        // ชื่อฟิลด์สำหรับการรับค่าเป็นรายการแรกของ login_fields
+        $field_name = reset(self::$cfg->login_fields);
+        // อ่านข้อมูลจากฟอร์ม login ฟิลด์ login_username
+        self::$login_params['username'] = self::$request->post('login_username')->toString();
+        if (empty(self::$login_params['username'])) {
+            if (isset($_SESSION['login']) && isset($_SESSION['login'][$field_name])) {
+                // from session
+                self::$login_params['username'] = $_SESSION['login'][$field_name];
+            } else {
+                // from cookie
+                $datas = self::$request->getCookieParams();
+                self::$login_params['username'] = isset($datas['login_username']) ? $pw->decode($datas['login_username']) : null;
+            }
+            self::$from_submit = false;
+        } else {
+            self::$from_submit = true;
+        }
+        self::$login_params['username'] = Text::username(self::$login_params['username']);
+        self::$login_params['password'] = self::get('password', $pw);
+        $login_remember = self::get('remember') == 1 ? 1 : 0;
+        // ตรวจสอบการ login
+        if (self::$request->get('action')->toString() === 'logout' && !self::$from_submit) {
+            // logout ลบ session และ cookie
+            unset($_SESSION['login']);
+            $time = time();
+            setcookie('login_username', '', $time, '/', null, null, true);
+            setcookie('login_password', '', $time, '/', null, null, true);
+            self::$login_message = Language::get('Logout successful');
+        } elseif (!$check && self::$request->post('action')->toString() === 'forgot') {
+            // ขอรหัสผ่านใหม่
+            return $login->forgot(self::$request);
+        } elseif (!$check && !self::$from_submit && isset($_SESSION['login'])) {
+            // login อยู่แล้ว
+
+            return $_SESSION['login'];
+        } else {
+            // ตรวจสอบค่าที่ส่งมา
+            if (self::$login_params['username'] == '') {
+                if (self::$from_submit) {
+                    self::$login_message = Language::get('Please fill in');
+                    self::$login_input = 'login_username';
+                }
+            } elseif (self::$login_params['password'] == '') {
+                if (self::$from_submit) {
+                    self::$login_message = Language::get('Please fill in');
+                    self::$login_input = 'login_password';
+                }
+            } elseif (!self::$from_submit || (self::$from_submit && self::$request->isReferer())) {
+                // ตรวจสอบการ login กับฐานข้อมูล
+                $login_result = $login->checkLogin(self::$login_params);
+                if (is_array($login_result)) {
+                    // save login session
+                    $login_result['password'] = self::$login_params['password'];
+                    $login_result['login_id'] = $login_result['id'];
+                    $_SESSION['login'] = $login_result;
+                    // save login cookie
+                    $time = time() + 2592000;
+                    if ($login_remember == 1) {
+                        setcookie('login_username', $pw->encode(self::$login_params['username']), $time, '/', null, null, true);
+                        setcookie('login_password', $pw->encode(self::$login_params['password']), $time, '/', null, null, true);
+                        setcookie('login_remember', $login_remember, $time, '/', null, null, true);
+                    }
+                } else {
+                    if (is_string($login_result)) {
+                        // ข้อความผิดพลาด
+                        self::$login_input = self::$login_input == 'password' ? 'login_password' : 'login_username';
+                        self::$login_message = Language::get($login_result);
+                    }
+                    // logout ลบ session และ cookie
+                    unset($_SESSION['login']);
+                    $time = time();
+                    setcookie('login_username', '', $time, '/', null, null, true);
+                    setcookie('login_password', '', $time, '/', null, null, true);
+                }
+            } elseif (isset($_SESSION['login'])) {
+                // login อยู่แล้ว
+
+                return $_SESSION['login'];
+            }
+        }
+
+        return $login;
+    }
+
+    /**
+     * @param Request $request
+     */
+    public static function checkAccount(Request $request)
+    {
+        $login = self::isMember();
+        $account_id = $request->request('account_id')->toInt();
+        if ($account_id == 0 || $account_id == $login['account_id']) {
+            // สมาชิก
+            return $login;
+        } elseif ($login['status'] == 1) {
+            // แอดมินเข้าระบบเป็นคนอื่น
+            $user = \Kotchasan\Model::createQuery()
+                ->from('user U')
+                ->where(array('U.id', $account_id))
+                ->toArray()
+                ->first('U.*', 'U.id account_id');
+            if ($user) {
+                // ใช้ชื่อของ user
+                $_SESSION['login']['id'] = $user['id'];
+                $_SESSION['login']['account_id'] = $user['account_id'];
+                $_SESSION['login']['name'] = $user['name'] == '' ? $user['username'] : $user['name'];
+
+                return $_SESSION['login'];
+            }
+        }
+
+        return null;
     }
 
     /**

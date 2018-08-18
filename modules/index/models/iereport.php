@@ -36,8 +36,8 @@ class Model extends \Kotchasan\Model
             ->select('id', 'account_id', 'create_date', Sql::SUM('income', 'income'), Sql::SUM('expense', 'expense'))
             ->from('ierecord')
             ->where(array(
-                array('account_id', $owner['id']),
-                array('category_id', '>', 0),
+                array('account_id', $owner['account_id']),
+                array('status', array('IN', 'OUT')),
             ))
             ->groupBy(Sql::YEAR('create_date'))
             ->order('create_date DESC')
@@ -46,9 +46,8 @@ class Model extends \Kotchasan\Model
             ->select('id', 'account_id', 'category_id', Sql::SUM('expense', 'expense'))
             ->from('ierecord')
             ->where(array(
-                array('account_id', $owner['id']),
+                array('account_id', $owner['account_id']),
                 array('status', 'OUT'),
-                array('category_id', '>', 0),
             ))
             ->groupBy('category_id')
             ->order('expense DESC')
@@ -73,15 +72,15 @@ class Model extends \Kotchasan\Model
             ->select('id', 'account_id', 'create_date', 'income', 'expense')
             ->from('ierecord')
             ->where(array(
-                array('account_id', $owner['id']),
+                array('account_id', $owner['account_id']),
                 array(Sql::YEAR('create_date'), (int) $owner['year']),
-                array('category_id', '>', 0),
+                array('status', array('IN', 'OUT')),
             ));
         $q2 = static::createQuery()
             ->select('id', 'account_id', 'create_date', '0 income', '0 expense')
             ->from('ierecord')
             ->where(array(
-                array('account_id', $owner['id']),
+                array('account_id', $owner['account_id']),
                 array(Sql::YEAR('create_date'), (int) $owner['year']),
                 array('category_id', 0),
             ));
@@ -94,10 +93,9 @@ class Model extends \Kotchasan\Model
             ->select('id', 'account_id', 'category_id', Sql::SUM('expense', 'expense'))
             ->from('ierecord')
             ->where(array(
-                array('account_id', $owner['id']),
+                array('account_id', $owner['account_id']),
                 array(Sql::YEAR('create_date'), (int) $owner['year']),
                 array('status', 'OUT'),
-                array('category_id', '>', 0),
             ))
             ->groupBy('category_id')
             ->order('expense DESC')
@@ -122,7 +120,7 @@ class Model extends \Kotchasan\Model
             ->select('id', 'account_id', 'create_date', 'income', 'expense')
             ->from('ierecord')
             ->where(array(
-                array('account_id', $owner['id']),
+                array('account_id', $owner['account_id']),
                 array(Sql::YEAR('create_date'), (int) $owner['year']),
                 array(Sql::MONTH('create_date'), (int) $owner['month']),
                 array('status', array('IN', 'OUT')),
@@ -131,7 +129,7 @@ class Model extends \Kotchasan\Model
             ->select('id', 'account_id', 'create_date', '0 income', '0 expense')
             ->from('ierecord')
             ->where(array(
-                array('account_id', $owner['id']),
+                array('account_id', $owner['account_id']),
                 array(Sql::YEAR('create_date'), (int) $owner['year']),
                 array(Sql::MONTH('create_date'), (int) $owner['month']),
                 array('status', array('INIT', 'TRANSFER')),
@@ -145,11 +143,10 @@ class Model extends \Kotchasan\Model
             ->select('id', 'account_id', 'category_id', Sql::SUM('expense', 'expense'))
             ->from('ierecord')
             ->where(array(
-                array('account_id', $owner['id']),
+                array('account_id', $owner['account_id']),
                 array(Sql::YEAR('create_date'), (int) $owner['year']),
                 array(Sql::MONTH('create_date'), (int) $owner['month']),
                 array('status', 'OUT'),
-                array('category_id', '>', 0),
             ))
             ->groupBy('category_id')
             ->order('expense DESC')
@@ -171,12 +168,10 @@ class Model extends \Kotchasan\Model
     public static function daily($owner)
     {
         return static::createQuery()
-            ->select(
-                'id', 'account_id', 'category_id', 'wallet', 'comment', 'income', 'expense', 'status', 'transfer_to'
-            )
+            ->select('id', 'account_id', 'category_id', 'wallet', 'comment', 'income', 'expense', 'status', 'transfer_to')
             ->from('ierecord')
             ->where(array(
-                array('account_id', $owner['id']),
+                array('account_id', $owner['account_id']),
                 array('create_date', $owner['date']),
             ));
     }
@@ -192,7 +187,7 @@ class Model extends \Kotchasan\Model
     {
         $model = new static();
         $where = array(
-            array('account_id', $owner['id']),
+            array('account_id', $owner['account_id']),
         );
         if (!empty($owner['wallet'])) {
             $where[] = $model->groupOr(array(
@@ -211,9 +206,7 @@ class Model extends \Kotchasan\Model
         }
 
         return static::createQuery()
-            ->select(
-                'id', 'account_id', 'create_date', 'category_id', 'wallet', 'comment', 'income', 'expense', 'status', 'transfer_to'
-            )
+            ->select('id', 'account_id', 'create_date', 'category_id', 'wallet', 'comment', 'income', 'expense', 'status', 'transfer_to')
             ->from('ierecord')
             ->where($where)
             ->order('create_date DESC');
@@ -233,7 +226,7 @@ class Model extends \Kotchasan\Model
             if ($action === 'delete') {
                 $id = $request->post('id')->toInt();
                 $this->db()->delete($this->getTableName('ierecord'), array(
-                    array('account_id', $login['id']),
+                    array('account_id', $login['account_id']),
                     array('id', $id),
                 ));
                 $ret['remove'] = $request->post('src')->toString().'_'.$id;

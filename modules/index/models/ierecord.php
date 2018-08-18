@@ -10,11 +10,11 @@
 
 namespace Index\Ierecord;
 
+use Gcms\Login;
 use Kotchasan\Currency;
 use Kotchasan\Database\Sql;
 use Kotchasan\Http\Request;
 use Kotchasan\Language;
-use Kotchasan\Login;
 
 /**
  * module=ierecord.
@@ -39,10 +39,10 @@ class Model extends \Kotchasan\Model
         if ($id > 0) {
             // แก้ไข, อ่านรายการที่เลือก
             return static::createQuery()
-                ->from('ierecord')
+                ->from('ierecord R')
                 ->where(array(
-                    array('account_id', (int) $account_id),
-                    array('id', (int) $id),
+                    array('R.account_id', $account_id),
+                    array('R.id', $id),
                 ))
                 ->first();
         } elseif ($new) {
@@ -71,7 +71,7 @@ class Model extends \Kotchasan\Model
             $status = $request->post('write_status')->filter('A-Z');
             // รายการที่เลือก
             $index = self::get($account_id, $request->post('write_id')->toInt(), true);
-            if ($index && $index->account_id == $login['id']) {
+            if ($index && $index->account_id == $login['account_id']) {
                 if ($index->id > 0) {
                     // แก้ไขใช้สถานะเดิม
                     $status = $index->status;
@@ -124,47 +124,57 @@ class Model extends \Kotchasan\Model
         if ($category_id == 0) {
             // ไม่ได้กรอกหมวดหมู่
             $ret['ret_write_category'] = 'this';
-        }
-        // จำนวนเงิน
-        $amount = $request->post('write_amount')->toDouble();
-        if ($amount == 0) {
-            // ไม่ได้กรอกจำนวนเงิน
-            $ret['ret_write_amount'] = 'Please fill in';
-        }
-        if (empty($ret)) {
-            $model = new \Kotchasan\Model();
-            $table_name = $model->getTableName('ierecord');
-            // save
-            $save = array(
-                'comment' => $request->post('write_comment')->topic(),
-                'create_date' => $request->post('write_create_date')->date(),
-                'category_id' => $category_id,
-                'wallet' => $request->post('write_wallet')->toInt(),
-            );
-            if ($status == 'IN') {
-                $save['income'] = $amount;
-                $save['expense'] = 0;
-            } else {
-                $save['expense'] = $amount;
-                $save['income'] = 0;
+        } else {
+            // ค่าที่ส่งมา
+            $wallet = $request->post('write_wallet')->toInt();
+            // จำนวนเงิน
+            $amount = $request->post('write_amount')->toDouble();
+            if ($amount == 0) {
+                // ไม่ได้กรอกจำนวนเงิน
+                $ret['ret_write_amount'] = 'Please fill in';
+            } elseif ($status == 'OUT') {
+                // อ่านจำนวนเงินในกระเป๋า สำหรับรายจ่าย
+                $money_source = \Index\Wallet\Model::getMoney($index->account_id, $wallet);
+                if ($money_source < $amount) {
+                    // จำนวนเงินมากกว่าจำนวนเงินในกระเป๋า
+                    $ret['ret_write_amount'] = Language::replace('Fill in more money in pocket (:amount)', array(':amount' => Currency::format($money_source)));
+                }
             }
-            if ($index->id == 0) {
-                // ใหม่
-                $save['id'] = Sql::NEXT('id', $table_name, array('account_id', $index->account_id));
-                $save['account_id'] = $index->account_id;
-                $save['status'] = $status;
-                $save['transfer_to'] = 0;
-                $model->db()->insert($table_name, $save);
-            } else {
-                // แก้ไข
-                $where = array(
-                    array('account_id', $index->account_id),
-                    array('id', $index->id),
+            if (empty($ret)) {
+                $model = new \Kotchasan\Model();
+                $table_name = $model->getTableName('ierecord');
+                // save
+                $save = array(
+                    'comment' => $request->post('write_comment')->topic(),
+                    'create_date' => $request->post('write_create_date')->date(),
+                    'category_id' => $category_id,
+                    'wallet' => $wallet,
                 );
-                $model->db()->update($table_name, $where, $save);
+                if ($status == 'IN') {
+                    $save['income'] = $amount;
+                    $save['expense'] = 0;
+                } else {
+                    $save['expense'] = $amount;
+                    $save['income'] = 0;
+                }
+                if ($index->id == 0) {
+                    // ใหม่
+                    $save['id'] = Sql::NEXT('id', $table_name, array('account_id', $index->account_id));
+                    $save['account_id'] = $index->account_id;
+                    $save['status'] = $status;
+                    $save['transfer_to'] = 0;
+                    $model->db()->insert($table_name, $save);
+                } else {
+                    // แก้ไข
+                    $where = array(
+                        array('account_id', $index->account_id),
+                        array('id', $index->id),
+                    );
+                    $model->db()->update($table_name, $where, $save);
+                }
+                // save cookie
+                setcookie('ierecord_wallet', $save['wallet'], time() + 2592000, '/', null, null, true);
             }
-            // save cookie
-            setcookie('ierecord_wallet', $save['wallet'], time() + 2592000, '/', null, null, true);
         }
 
         return $ret;
@@ -242,10 +252,9 @@ class Model extends \Kotchasan\Model
                 ->from('category')
                 ->where(array(
                     array('account_id', $index->account_id),
-                    array('id', 4),
+                    array('id', WALLET),
                     array('topic', $wallet),
                 ))
-                ->toArray()
                 ->first('category_id');
             if ($search) {
                 // มีกระเป๋าเงินนี้อยู่แล้ว
@@ -256,16 +265,15 @@ class Model extends \Kotchasan\Model
                     ->from('category')
                     ->where(array(
                         array('account_id', $index->account_id),
-                        array('id', 4),
+                        array('id', WALLET),
                     ))
-                    ->toArray()
                     ->first(Sql::MAX('category_id', 'category_id'));
-                $wallet_id = empty($search['category_id']) ? 1 : (1 + (int) $search['category_id']);
+                $wallet_id = empty($search->category_id) ? 1 : (1 + (int) $search->category_id);
                 // สร้างกระเป๋าเงิน
                 $model->db()->insert($model->getTableName('category'), array(
                     'account_id' => $index->account_id,
-                    'id' => 4,
                     'category_id' => $wallet_id,
+                    'id' => WALLET,
                     'topic' => $wallet,
                 ));
                 $amount = $request->post('write_amount')->toDouble();

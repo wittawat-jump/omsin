@@ -87,8 +87,9 @@ class Model extends \Kotchasan\Model
             ->join(array($q3, 'M'), 'LEFT', array(array('M.wallet', 'C.category_id')))
             ->where(array(
                 array('C.account_id', $account_id),
-                array('C.id', 4),
-            ));
+                array('C.id', WALLET),
+            ))
+            ->cacheOn();
         $result = array();
         foreach ($query->execute() as $item) {
             $result[$item->category_id] = $item->topic.' ('.Currency::format($item->money).')';

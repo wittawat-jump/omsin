@@ -13,7 +13,7 @@ namespace Index\About;
 use Kotchasan\Html;
 use Kotchasan\Http\Request;
 use Kotchasan\Language;
-use Kotchasan\Login;
+use Gcms\Login;
 
 /**
  * module=about.

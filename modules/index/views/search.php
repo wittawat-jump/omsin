@@ -62,14 +62,14 @@ class View extends \Gcms\View
             ),
         );
         $this->wallet = array(0 => '{LNG_all items}');
-        foreach (\Index\Category\Model::all($owner['id'], array(1, 2, 4)) as $item) {
-            if ($item['id'] == 1) {
+        foreach (\Index\Category\Model::all($owner['account_id'], array(RECEIVE, EXPENSE, WALLET)) as $item) {
+            if ($item['id'] == RECEIVE) {
                 // หมวดหมู่รายรับ
                 $this->categories['IN'][$item['category_id']] = $item['topic'];
-            } elseif ($item['id'] == 2) {
+            } elseif ($item['id'] == EXPENSE) {
                 // หมวดหมู่รายจ่าย
                 $this->categories['OUT'][$item['category_id']] = $item['topic'];
-            } elseif ($item['id'] == 4) {
+            } elseif ($item['id'] == WALLET) {
                 // กระเป๋าเงิน
                 $this->wallet[$item['category_id']] = $item['topic'];
             }
@@ -99,7 +99,7 @@ class View extends \Gcms\View
                 array(
                     'name' => 'year',
                     'text' => '{LNG_year}',
-                    'options' => array(0 => '{LNG_all items}') + \Index\Select\Model::getYears($owner['id']),
+                    'options' => array(0 => '{LNG_all items}') + \Index\Select\Model::getYears($owner['account_id']),
                     'value' => $owner['year'],
                 ),
                 array(
@@ -191,16 +191,17 @@ class View extends \Gcms\View
                 $item['income'] = $item['expense'];
                 $item['expense'] = 0;
             }
+            $item['income'] = Currency::format($item['expense']);
         } else {
             $item['wallet'] = isset($this->wallet[$item['wallet']]) ? $this->wallet[$item['wallet']] : 'Unknow';
+            $this->total += ($item['income'] - $item['expense']);
+            if ($item['income'] > 0) {
+                $item['income'] = '<span class=color-green>+'.Currency::format($item['income']).'</span>';
+            } else {
+                $item['income'] = '<span class=color-red>-'.Currency::format($item['expense']).'</span>';
+            }
         }
-        $this->total += ($item['income'] - $item['expense']);
         $item['create_date'] = Date::format($item['create_date'], 'd M Y');
-        if ($item['income'] > 0) {
-            $item['income'] = '<span class=color-green>+'.Currency::format($item['income']).'</span>';
-        } else {
-            $item['income'] = '<span class=color-red>-'.Currency::format($item['expense']).'</span>';
-        }
 
         return $item;
     }
@@ -212,6 +213,6 @@ class View extends \Gcms\View
      */
     public function onCreateFooter()
     {
-        return '<tr><td class=right colspan=3>{LNG_Total}</td><td class=mobile></td><td class="right color-'.($this->total < 0 ? 'red' : 'green').'">'.Currency::format($this->total).'</td></tr>';
+        return '<tr><td class=right colspan=4></td><td>{LNG_Total}</td><td class="right color-'.($this->total < 0 ? 'red' : 'green').'">'.Currency::format($this->total).'</td></tr>';
     }
 }

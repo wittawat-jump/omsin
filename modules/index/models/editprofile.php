@@ -12,7 +12,7 @@ namespace Index\Editprofile;
 
 use Kotchasan\Http\Request;
 use Kotchasan\Language;
-use Kotchasan\Login;
+use Gcms\Login;
 
 /**
  * module=editprofile.

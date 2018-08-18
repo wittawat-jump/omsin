@@ -55,7 +55,7 @@ class View extends \Gcms\View
                 $row->add('span', array(
                     'id' => 'category_name_'.$account_id.'_'.$item['category_id'].'_'.$typ,
                     'innerHTML' => $item['topic'],
-                    'title' => '{LNG_click to edit}',
+                    'title' => '{LNG_Click to edit}',
                 ));
             }
             $list->script('initEditInplace("category", "index/model/category/submit");');

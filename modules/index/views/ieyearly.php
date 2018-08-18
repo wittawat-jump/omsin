@@ -69,7 +69,7 @@ class View extends \Gcms\View
                 $datas[] = $item;
             }
             $row .= '<section class="card margin-top"><h3>{LNG_Summary of expenditures by category}</h3><div class=body>';
-            $categories = \Index\Select\Model::ieCategories($owner['id'], 'OUT');
+            $categories = \Index\Select\Model::ieCategories($owner['account_id'], 'OUT');
             foreach ($datas as $i => $item) {
                 $row .= '<div class="chart">';
                 $cat = isset($categories[$item['category_id']]) ? $categories[$item['category_id']] : 'Unknow';

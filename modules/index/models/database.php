@@ -27,11 +27,11 @@ class Model extends \Kotchasan\Model
     /**
      * @var string
      */
-    public static $transfer = 'โอนเงินระหว่างบัญชี';
+    private static $transfer = 'โอนเงินระหว่างบัญชี';
     /**
      * @var string
      */
-    public static $summit = 'ยอดยกมา';
+    private static $summit = 'ยอดยกมา';
 
     /**
      * รับค่าจาก action.
@@ -44,7 +44,7 @@ class Model extends \Kotchasan\Model
             $ret = array();
             if ($request->post('action')->toString() == 'reset') {
                 // ลบข้อมูลทั้งหมดของ User
-                $account_id = (int) $login['id'];
+                $account_id = (int) $login['account_id'];
                 $this->db()->delete($this->getTableName('ierecord'), array('account_id', $account_id), 0);
                 $this->db()->delete($this->getTableName('category'), array('account_id', $account_id), 0);
                 // คืนค่า
@@ -85,7 +85,7 @@ class Model extends \Kotchasan\Model
     public function export(Request $request)
     {
         if ($request->initSession() && $request->isReferer() && $login = Login::isMember()) {
-            $account_id = (int) $login['id'];
+            $account_id = (int) $login['account_id'];
             // query ข้อมูล category
             $query = $this->db()->createQuery()
                 ->select('category_id', 'topic', 'id')
@@ -95,11 +95,11 @@ class Model extends \Kotchasan\Model
             $category = array();
             $wallet = array();
             foreach ($query->execute() as $item) {
-                if ($item['id'] == 1) {
+                if ($item['id'] == RECEIVE) {
                     $category['IN'][$item['category_id']] = $item['topic'];
-                } elseif ($item['id'] == 2) {
+                } elseif ($item['id'] == EXPENSE) {
                     $category['OUT'][$item['category_id']] = $item['topic'];
-                } elseif ($item['id'] == 4) {
+                } elseif ($item['id'] == WALLET) {
                     $wallet[$item['category_id']] = $item['topic'];
                 }
             }
@@ -130,6 +130,7 @@ class Model extends \Kotchasan\Model
                     $item['wallet'] = isset($wallet[$item['wallet']]) ? $wallet[$item['wallet']] : 'Unknow';
                 }
                 unset($item['status']);
+                unset($item['transfer_to']);
                 $datas[] = $item;
             }
             $headers = array();
@@ -148,123 +149,125 @@ class Model extends \Kotchasan\Model
     public function submit(Request $request)
     {
         // session, token, สามารถแก้ไขได้
-        if ($request->initSession() && $request->isSafe() && $login = Login::isMember()) {
-            // สมาชิก
-            $account_id = (int) $login['id'];
-            // ชื่อตาราง
-            $category_table = $this->getTableName('category');
-            $ierecord_table = $this->getTableName('ierecord');
-            $category = array();
-            $wallet = array();
-            $category_id = 0;
-            // query ข้อมูล category
-            $sql = "SELECT `category_id`,`topic`,`id` FROM `$category_table` WHERE `account_id`=$account_id";
-            foreach ($this->db()->customQuery($sql, true) as $item) {
-                $category_id = max($category_id, $item['category_id']);
-                if ($item['id'] == 1) {
-                    $category['IN'][$item['topic']] = $item['category_id'];
-                } elseif ($item['id'] == 2) {
-                    $category['OUT'][$item['topic']] = $item['category_id'];
-                } elseif ($item['id'] == 4) {
-                    $wallet[$item['topic']] = $item['category_id'];
+        if ($request->initSession() && $request->isSafe()) {
+            if ($login = Login::isMember()) {
+                // สมาชิก
+                $account_id = (int) $login['account_id'];
+                // ชื่อตาราง
+                $category_table = $this->getTableName('category');
+                $ierecord_table = $this->getTableName('ierecord');
+                $category = array();
+                $wallet = array();
+                $category_id = 0;
+                // query ข้อมูล category
+                $sql = "SELECT `category_id`,`topic`,`id` FROM `$category_table` WHERE `account_id`=$account_id";
+                foreach ($this->db()->customQuery($sql, true) as $item) {
+                    $category_id = max($category_id, $item['category_id']);
+                    if ($item['id'] == RECEIVE) {
+                        $category['IN'][$item['topic']] = $item['category_id'];
+                    } elseif ($item['id'] == EXPENSE) {
+                        $category['OUT'][$item['topic']] = $item['category_id'];
+                    } elseif ($item['id'] == WALLET) {
+                        $wallet[$item['topic']] = $item['category_id'];
+                    }
                 }
-            }
-            $sql = "SELECT MAX(`id`) AS `id` FROM `$ierecord_table` WHERE `account_id`=$account_id";
-            $ierecord = $this->db()->customQuery($sql, true);
-            if (sizeof($ierecord) == 1) {
-                $ierecord_id = $ierecord[0]['id'];
-            } else {
-                $ierecord_id = 0;
-            }
-            $ret = array();
-            // อัปโหลดไฟล์
-            foreach ($request->getUploadedFiles() as $item => $file) {
-                /* @var $file UploadedFile */
-                if ($file->hasUploadFile()) {
-                    if (!$file->validFileExt(array('csv'))) {
-                        // ชนิดของไฟล์ไม่ถูกต้อง
-                        $ret['ret_'.$item] = Language::get('The type of file is invalid');
-                    } else {
-                        $f = @fopen($file->getTempFileName(), 'r');
-                        if ($f) {
-                            $r = 0;
-                            while (($data = fgetcsv($f)) !== false) {
-                                if ($r > 0 && empty($ret)) {
-                                    ++$ierecord_id;
-                                    $save = array(
-                                        'account_id' => $account_id,
-                                        'id' => $ierecord_id,
-                                        'category_id' => preg_replace('/[\r\n\s\t]+/', ' ', trim(strip_tags($data[0]))),
-                                        'wallet' => preg_replace('/[\r\n\s\t]+/', ' ', trim(strip_tags($data[1]))),
-                                        'expense' => (float) $data[2],
-                                        'income' => (float) $data[3],
-                                        'create_date' => $data[4],
-                                        'comment' => preg_replace('/[\r\n\s\t]+/', ' ', trim(strip_tags($data[5]))),
-                                        'transfer_to' => 0,
-                                    );
-                                    if ($save['category_id'] == self::$transfer) {
-                                        // โอนเงินระหว่างบัญชี
-                                        $save['category_id'] = 0;
-                                        $save['status'] = 'TRANSFER';
-                                        foreach (explode('/', $save['wallet']) as $n => $w) {
-                                            if ($n == 0) {
-                                                $save['wallet'] = $this->getWallet($wallet, $category_id, $account_id, $category_table, $w);
-                                            } else {
-                                                $save['transfer_to'] = $this->getWallet($wallet, $category_id, $account_id, $category_table, $w);
+                $sql = "SELECT MAX(`id`) AS `id` FROM `$ierecord_table` WHERE `account_id`=$account_id";
+                $ierecord = $this->db()->customQuery($sql, true);
+                if (sizeof($ierecord) == 1) {
+                    $ierecord_id = $ierecord[0]['id'];
+                } else {
+                    $ierecord_id = 0;
+                }
+                $ret = array();
+                // อัปโหลดไฟล์
+                foreach ($request->getUploadedFiles() as $item => $file) {
+                    /* @var $file UploadedFile */
+                    if ($file->hasUploadFile()) {
+                        if (!$file->validFileExt(array('csv'))) {
+                            // ชนิดของไฟล์ไม่ถูกต้อง
+                            $ret['ret_'.$item] = Language::get('The type of file is invalid');
+                        } else {
+                            $f = @fopen($file->getTempFileName(), 'r');
+                            if ($f) {
+                                $r = 0;
+                                while (($data = fgetcsv($f)) !== false) {
+                                    if ($r > 0 && empty($ret)) {
+                                        ++$ierecord_id;
+                                        $save = array(
+                                            'account_id' => $account_id,
+                                            'id' => $ierecord_id,
+                                            'category_id' => preg_replace('/[\r\n\s\t]+/', ' ', trim(strip_tags($data[0]))),
+                                            'wallet' => preg_replace('/[\r\n\s\t]+/', ' ', trim(strip_tags($data[1]))),
+                                            'expense' => (float) $data[2],
+                                            'income' => (float) $data[3],
+                                            'create_date' => $data[4],
+                                            'comment' => preg_replace('/[\r\n\s\t]+/', ' ', trim(strip_tags($data[5]))),
+                                            'transfer_to' => 0,
+                                        );
+                                        if ($save['category_id'] == self::$transfer) {
+                                            // โอนเงินระหว่างบัญชี
+                                            $save['category_id'] = 0;
+                                            $save['status'] = 'TRANSFER';
+                                            foreach (explode('/', $save['wallet']) as $n => $w) {
+                                                if ($n == 0) {
+                                                    $save['wallet'] = $this->getWallet($wallet, $category_id, $account_id, $category_table, $w);
+                                                } else {
+                                                    $save['transfer_to'] = $this->getWallet($wallet, $category_id, $account_id, $category_table, $w);
+                                                }
                                             }
-                                        }
-                                        $save['income'] = 0;
-                                        if ($save['transfer_to'] == 0) {
-                                            // ถ้าไม่มี transfer_to จะไม่นำเข้าข้อมูล
+                                            $save['income'] = 0;
+                                            if ($save['transfer_to'] == 0) {
+                                                // ถ้าไม่มี transfer_to จะไม่นำเข้าข้อมูล
+                                                $save['expense'] = 0;
+                                            }
+                                        } elseif ($save['category_id'] == self::$summit) {
+                                            // เพิ่มกระเป๋าเงิน
+                                            $save['category_id'] = 0;
+                                            $save['status'] = 'INIT';
+                                            $save['wallet'] = $this->getWallet($wallet, $category_id, $account_id, $category_table, $save['wallet']);
+                                            $save['expense'] = 0;
+                                        } elseif ($save['expense'] > 0) {
+                                            // รายจ่าย
+                                            $save['status'] = 'OUT';
+                                            $save['category_id'] = $this->getCategory($category, 'OUT', $category_id, $account_id, $category_table, $save['category_id']);
+                                            $save['wallet'] = $this->getWallet($wallet, $category_id, $account_id, $category_table, $save['wallet']);
+                                            $save['income'] = 0;
+                                        } else {
+                                            // รายรับ
+                                            $save['status'] = 'IN';
+                                            $save['category_id'] = $this->getCategory($category, 'IN', $category_id, $account_id, $category_table, $save['category_id']);
+                                            $save['wallet'] = $this->getWallet($wallet, $category_id, $account_id, $category_table, $save['wallet']);
                                             $save['expense'] = 0;
                                         }
-                                    } elseif ($save['category_id'] == self::$summit) {
-                                        // เพิ่มกระเป๋าเงิน
-                                        $save['category_id'] = 0;
-                                        $save['status'] = 'INIT';
-                                        $save['wallet'] = $this->getWallet($wallet, $category_id, $account_id, $category_table, $save['wallet']);
-                                        $save['expense'] = 0;
-                                    } elseif ($save['expense'] > 0) {
-                                        // รายจ่าย
-                                        $save['status'] = 'OUT';
-                                        $save['category_id'] = $this->getCategory($category, 'OUT', $category_id, $account_id, $category_table, $save['category_id']);
-                                        $save['wallet'] = $this->getWallet($wallet, $category_id, $account_id, $category_table, $save['wallet']);
-                                        $save['income'] = 0;
-                                    } else {
-                                        // รายรับ
-                                        $save['status'] = 'IN';
-                                        $save['category_id'] = $this->getCategory($category, 'IN', $category_id, $account_id, $category_table, $save['category_id']);
-                                        $save['wallet'] = $this->getWallet($wallet, $category_id, $account_id, $category_table, $save['wallet']);
-                                        $save['expense'] = 0;
+                                        if ($save['expense'] > 0 || $save['income'] > 0) {
+                                            // บันทึกเฉพาะรายการที่มี รายรับ หรือ รายจ่ายเท่านั้น
+                                            $this->db()->insert($ierecord_table, $save);
+                                        }
+                                    } elseif ($r == 0) {
+                                        // ตรวจสอบ header
+                                        $headers = array_values(self::headers());
+                                        if (sizeof($headers) != sizeof($headers)) {
+                                            // รูปแบบของไฟล์ไม่ถูกต้อง
+                                            $ret['ret_'.$item] = Language::get('The format of the imported file is invalid');
+                                        }
                                     }
-                                    if ($save['expense'] > 0 || $save['income'] > 0) {
-                                        // บันทึกเฉพาะรายการที่มี รายรับ หรือ รายจ่ายเท่านั้น
-                                        $this->db()->insert($ierecord_table, $save);
-                                    }
-                                } elseif ($r == 0) {
-                                    // ตรวจสอบ header
-                                    $headers = array_values(self::headers());
-                                    if (sizeof($headers) != sizeof($headers)) {
-                                        // รูปแบบของไฟล์ไม่ถูกต้อง
-                                        $ret['ret_'.$item] = Language::get('The format of the imported file is invalid');
-                                    }
+                                    ++$r;
                                 }
-                                ++$r;
+                                // คืนค่า
+                                $ret['alert'] = Language::replace('Successfully imported :count items', array(':count' => $r - 1));
+                                $ret['location'] = 'index.php';
+                                // เคลียร์
+                                $request->removeToken();
                             }
-                            // คืนค่า
-                            $ret['alert'] = Language::replace('Successfully imported :count items', array(':count' => $r - 1));
-                            $ret['location'] = 'index.php';
-                            // เคลียร์
-                            $request->removeToken();
                         }
+                    } elseif ($err = $file->getErrorMessage()) {
+                        // upload error
+                        $ret['ret_'.$item] = $err;
                     }
-                } elseif ($err = $file->getErrorMessage()) {
-                    // upload error
-                    $ret['ret_'.$item] = $err;
                 }
+                // คืนค่าเป็น JSON
+                echo json_encode($ret);
             }
-            // คืนค่าเป็น JSON
-            echo json_encode($ret);
         }
     }
 
@@ -285,7 +288,7 @@ class Model extends \Kotchasan\Model
             ++$category_id;
             $this->db()->insert($category_table, array(
                 'account_id' => $account_id,
-                'id' => 4,
+                'id' => WALLET,
                 'category_id' => $category_id,
                 'topic' => $topic,
             ));
@@ -315,7 +318,7 @@ class Model extends \Kotchasan\Model
             ++$category_id;
             $this->db()->insert($category_table, array(
                 'account_id' => $account_id,
-                'id' => $status == 'IN' ? 1 : 2,
+                'id' => $status == 'IN' ? RECEIVE : EXPENSE,
                 'category_id' => $category_id,
                 'topic' => $topic,
             ));

@@ -13,7 +13,7 @@ namespace Index\Category;
 use Kotchasan\Html;
 use Kotchasan\Http\Request;
 use Kotchasan\Language;
-use Kotchasan\Login;
+use Gcms\Login;
 
 /**
  * module=category.
@@ -66,7 +66,7 @@ class Controller extends \Gcms\Controller
                 'class' => 'icon-edit notext',
             ));
             // แสดงตาราง
-            $section->appendChild(createClass('Index\Category\View')->render($request, $login['id'], $typ));
+            $section->appendChild(createClass('Index\Category\View')->render($request, $login['account_id'], $typ));
 
             return $section->render();
         }

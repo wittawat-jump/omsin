@@ -10,10 +10,10 @@
 
 namespace Index\Ieedit;
 
+use Gcms\Login;
 use Kotchasan\Html;
 use Kotchasan\Http\Request;
 use Kotchasan\Language;
-use Kotchasan\Login;
 
 /**
  * module=ieedit.
@@ -35,7 +35,7 @@ class Controller extends \Gcms\Controller
     {
         // สมาชิก
         if ($login = Login::isMember()) {
-            $index = \Index\Ierecord\Model::get($login['id'], $request->request('id')->toInt());
+            $index = \Index\Ierecord\Model::get($login['account_id'], $request->request('id')->toInt());
             $typies = array(
                 'IN' => 'Income',
                 'OUT' => 'Expense',

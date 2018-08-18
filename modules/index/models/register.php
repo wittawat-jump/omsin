@@ -118,6 +118,7 @@ class Model extends \Kotchasan\Model
             $save['password'] = sha1($save['password'].$save['salt']);
         }
         $save['create_date'] = time();
+        $save['status'] = 0;
         // บันทึกลงฐานข้อมูล
         $save['id'] = $model->db()->insert($model->getTableName('user'), $save);
 

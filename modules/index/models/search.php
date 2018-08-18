@@ -36,10 +36,10 @@ class Model extends \Kotchasan\Model
             if ($action === 'delete') {
                 $id = $request->post('id')->toInt();
                 $this->db()->delete($this->getTableName('ierecord'), array(
-                    array('account_id', $login['id']),
+                    array('account_id', $login['account_id']),
                     array('id', $id),
                 ));
-                $ret['remove'] = $request->post('src')->toString().'_'.$id;
+                $ret['location'] = 'reload';
             }
             if (!empty($ret)) {
                 // คืนค่า JSON

@@ -38,7 +38,7 @@ class Controller extends \Gcms\Controller
             // ตรวจสอบการ login
             Login::create();
             // สมาชิก
-            $login = Login::isMember();
+            $login = Login::checkAccount($request);
             // กำหนด skin ให้กับ template
             Template::init(self::$cfg->skin);
             // View

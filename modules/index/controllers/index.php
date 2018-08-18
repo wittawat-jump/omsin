@@ -45,7 +45,7 @@ class Controller extends \Gcms\Controller
         self::$view = new \Gcms\View();
         // Javascript
         self::$view->addScript('var WEB_URL="'.WEB_URL.'";');
-        if ($login = Login::isMember()) {
+        if ($login = Login::checkAccount($request)) {
             // โหลดเมนู
             self::$menus = \Index\Menu\Controller::init($login);
             // Javascript

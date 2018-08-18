@@ -55,14 +55,14 @@ class View extends \Gcms\View
             ),
         );
         $this->wallet = array();
-        foreach (\Index\Category\Model::all($owner['id'], array(1, 2, 4)) as $item) {
-            if ($item['id'] == 1) {
+        foreach (\Index\Category\Model::all($owner['account_id'], array(RECEIVE, EXPENSE, WALLET)) as $item) {
+            if ($item['id'] == RECEIVE) {
                 // หมวดหมู่รายรับ
                 $this->categories['IN'][$item['category_id']] = $item['topic'];
-            } elseif ($item['id'] == 2) {
+            } elseif ($item['id'] == EXPENSE) {
                 // หมวดหมู่รายจ่าย
                 $this->categories['OUT'][$item['category_id']] = $item['topic'];
-            } elseif ($item['id'] == 4) {
+            } elseif ($item['id'] == WALLET) {
                 // กระเป๋าเงิน
                 $this->wallet[$item['category_id']] = $item['topic'];
             }
@@ -88,13 +88,14 @@ class View extends \Gcms\View
             'headers' => array(
                 'category_id' => array(
                     'text' => '{LNG_Category}',
+                    'sort' => 'category_id',
                 ),
                 'wallet' => array(
                     'text' => '{LNG_Wallet}',
+                    'sort' => 'wallet',
                 ),
                 'comment' => array(
                     'text' => '{LNG_Annotation}',
-                    'class' => 'mobile',
                 ),
                 'income' => array(
                     'text' => '{LNG_Amount}',
@@ -103,9 +104,6 @@ class View extends \Gcms\View
             ),
             /* รูปแบบการแสดงผลของคอลัมน์ (tbody) */
             'cols' => array(
-                'comment' => array(
-                    'class' => 'mobile',
-                ),
                 'income' => array(
                     'class' => 'right',
                 ),
@@ -170,7 +168,7 @@ class View extends \Gcms\View
      */
     public function onCreateFooter()
     {
-        return '<tr><td class=right colspan=2>{LNG_Total}</td><td class=mobile></td><td class="right color-'.($this->total < 0 ? 'red' : 'green').'">'.Currency::format($this->total).'</td><td></td></tr>';
+        return '<tr><td colspan=2></td><td>{LNG_Total}</td><td class="right color-'.($this->total < 0 ? 'red' : 'green').'">'.Currency::format($this->total).'</td><td></td></tr>';
     }
 
     /**

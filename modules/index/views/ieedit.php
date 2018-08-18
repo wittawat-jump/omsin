@@ -52,7 +52,7 @@ class View extends \Gcms\View
         $fieldset = $form->add('fieldset', array(
             'title' => $status[$index->status],
         ));
-        if ($index->status == 'IN' || $index->status == 'OUT') {
+        if (in_array($index->status, array('IN', 'OUT'))) {
             // category_id
             $fieldset->add('select', array(
                 'id' => 'write_category',

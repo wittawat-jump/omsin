@@ -10,11 +10,11 @@
 
 namespace Index\Iereport;
 
+use Gcms\Login;
 use Kotchasan\Date;
 use Kotchasan\Html;
 use Kotchasan\Http\Request;
 use Kotchasan\Language;
-use Gcms\Login;
 
 /**
  * module=iereport.
@@ -42,7 +42,7 @@ class Controller extends \Gcms\Controller
         if ($login = Login::isMember()) {
             // ค่าที่ส่งมา
             $index = array(
-                'id' => $login['id'],
+                'account_id' => $login['account_id'],
                 'year' => $request->request('year')->toInt(),
                 'month' => $request->request('month')->toInt(),
                 'date' => $request->request('date')->date(),

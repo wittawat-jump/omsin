@@ -40,10 +40,10 @@ class Model extends \Kotchasan\Model
             // ตรวจสอบสมาชิกกับ db
             $username = $request->post('id')->number();
             $search = $db->createQuery()
-                ->from('user')
-                ->where(array('username', $username))
+                ->from('user U')
+                ->where(array('U.username', $username))
                 ->toArray()
-                ->first();
+                ->first('U.*', 'U.id account_id');
             if ($search === false) {
                 $name = trim($request->post('first_name')->topic().' '.$request->post('last_name')->topic());
                 $save = \Index\Register\Model::execute($this, array(
@@ -69,7 +69,12 @@ class Model extends \Kotchasan\Model
                 $save['salt'] = uniqid();
                 $save['password'] = sha1($password.$save['salt']);
                 // อัปเดท
-                $db->update($user_table, $search['id'], $save);
+                $db->update($user_table, $search['id'], array(
+                    'lastvisited' => $save['lastvisited'],
+                    'ip' => $save['ip'],
+                    'salt' => $save['salt'],
+                    'password' => $save['password'],
+                ));
             } else {
                 // ไม่สามารถ login ได้ เนื่องจากมี email อยู่ก่อนแล้ว
                 $save = false;

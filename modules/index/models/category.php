@@ -10,9 +10,9 @@
 
 namespace Index\Category;
 
+use Gcms\Login;
 use Kotchasan\Database\Sql;
 use Kotchasan\Http\Request;
-use Kotchasan\Login;
 
 /**
  * Model สำหรับบันทึกหมวดหมู่.
@@ -38,6 +38,7 @@ class Model extends \Kotchasan\Model
         if ($topic == '') {
             return 0;
         } else {
+            // Model
             $model = new static();
             $search = $model->db()->createQuery()
                 ->from('category')
@@ -85,7 +86,7 @@ class Model extends \Kotchasan\Model
      */
     public static function newIncome($account_id, $topic)
     {
-        return self::checkCategory($account_id, 1, $topic);
+        return self::checkCategory($account_id, RECEIVE, $topic);
     }
 
     /**
@@ -98,7 +99,7 @@ class Model extends \Kotchasan\Model
      */
     public static function newExpensive($account_id, $topic)
     {
-        return self::checkCategory($account_id, 2, $topic);
+        return self::checkCategory($account_id, EXPENSE, $topic);
     }
 
     /**
@@ -111,7 +112,7 @@ class Model extends \Kotchasan\Model
      */
     public static function newWallet($account_id, $topic)
     {
-        return self::checkCategory($account_id, 4, $topic);
+        return self::checkCategory($account_id, WALLET, $topic);
     }
 
     /**
@@ -124,10 +125,7 @@ class Model extends \Kotchasan\Model
      */
     public static function all($account_id, $typ)
     {
-        // Model
-        $model = new static();
-
-        return $model->db()->createQuery()
+        return static::createQuery()
             ->select()
             ->from('category')
             ->where(array(
