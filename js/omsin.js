@@ -71,7 +71,7 @@ function initIerecord() {
   findCategory("write_category", "write_account_id", function() {
     return $E("write_status").value == "IN" ? 1 : 2;
   });
-  findCategory("write_wallet", "write_account_id", function() {
+  findCategory("write_wallet_name", "write_account_id", function() {
     return 4;
   });
   doStatusChanged.call($E("write_status"));
