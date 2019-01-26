@@ -27,9 +27,9 @@ SET time_zone = "+00:00";
 --
 
 CREATE TABLE IF NOT EXISTS `{prefix}_category` (
-  `account_id` int(11) unsigned NOT NULL,
-  `id` int(11) unsigned NOT NULL,
-  `category_id` int(11) unsigned NOT NULL,
+  `account_id` int(11) UNSIGNED NOT NULL,
+  `id` int(11) UNSIGNED NOT NULL,
+  `category_id` int(11) UNSIGNED NOT NULL,
   `topic` varchar(30) COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`account_id`,`id`,`category_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
@@ -41,11 +41,11 @@ CREATE TABLE IF NOT EXISTS `{prefix}_category` (
 --
 
 CREATE TABLE IF NOT EXISTS `{prefix}_ierecord` (
-  `account_id` int(11) unsigned NOT NULL,
-  `id` int(11) unsigned NOT NULL,
+  `account_id` int(11) UNSIGNED NOT NULL,
+  `id` int(11) UNSIGNED NOT NULL,
   `status` enum('IN','OUT','TRANSFER','INIT') COLLATE utf8_unicode_ci NOT NULL,
   `category_id` int(11) NOT NULL,
-  `wallet` int(11) unsigned NOT NULL,
+  `wallet` int(11) UNSIGNED NOT NULL,
   `comment` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `create_date` date NOT NULL,
   `income` decimal(10,2) NOT NULL,
