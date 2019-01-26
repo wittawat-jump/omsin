@@ -19,20 +19,21 @@ namespace Index\Member;
  */
 class Model extends \Kotchasan\Model
 {
-    /**
-     * อ่านข้อมูลสมาชิกที่ $id
-     * คืนค่า array ข้อมูลสมาชิก ไม่พบคืนค่า null.
-     *
-     * @param int $id
-     *
-     * @return array|null
-     */
-    public static function get($id)
-    {
-        return static::createQuery()
-            ->from('user U')
-            ->where(array('U.id', $id))
-            ->toArray()
-            ->first();
-    }
+
+  /**
+   * อ่านข้อมูลสมาชิกที่ $id
+   * คืนค่า array ข้อมูลสมาชิก ไม่พบคืนค่า null.
+   *
+   * @param int $id
+   *
+   * @return array|null
+   */
+  public static function get($id)
+  {
+    return static::createQuery()
+        ->from('user U')
+        ->where(array('U.id', $id))
+        ->toArray()
+        ->first();
+  }
 }

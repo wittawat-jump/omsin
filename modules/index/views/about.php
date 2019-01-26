@@ -22,16 +22,17 @@ use Kotchasan\Template;
  */
 class View extends \Gcms\View
 {
-    /**
-     * หน้า About.
-     *
-     * @param Request $request
-     *
-     * @return string
-     */
-    public function render(Request $request)
-    {
-        // โหลด template
-        return Template::create('', '', 'about')->render();
-    }
+
+  /**
+   * หน้า About.
+   *
+   * @param Request $request
+   *
+   * @return string
+   */
+  public function render(Request $request)
+  {
+    // โหลด template
+    return Template::create('', '', 'about')->render();
+  }
 }

@@ -21,21 +21,22 @@ use Kotchasan\Http\Request;
  */
 class Controller extends \Kotchasan\Controller
 {
-    /**
-     * Controller สำหรับเรียก Modal มาแสดง.
-     *
-     * @param Request $request
-     */
-    public function index(Request $request)
-    {
-        if ($request->initSession() && $request->isReferer() && preg_match('/^modal_([a-z]+)_(.*)$/', $request->post('data')->toString(), $match)) {
-            $className = 'Index\\'.ucfirst($match[1]).'\View';
-            if (class_exists($className) && method_exists($className, 'render')) {
-                $content = createClass($className)->render($request, $match[2]);
-                if (!empty($content)) {
-                    echo createClass('Gcms\View')->renderHTML($content);
-                }
-            }
+
+  /**
+   * Controller สำหรับเรียก Modal มาแสดง.
+   *
+   * @param Request $request
+   */
+  public function index(Request $request)
+  {
+    if ($request->initSession() && $request->isReferer() && preg_match('/^modal_([a-z]+)_(.*)$/', $request->post('data')->toString(), $match)) {
+      $className = 'Index\\'.ucfirst($match[1]).'\View';
+      if (class_exists($className) && method_exists($className, 'render')) {
+        $content = createClass($className)->render($request, $match[2]);
+        if (!empty($content)) {
+          echo createClass('Gcms\View')->renderHTML($content);
         }
+      }
     }
+  }
 }

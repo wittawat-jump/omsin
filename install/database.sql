@@ -63,9 +63,10 @@ CREATE TABLE IF NOT EXISTS `{prefix}_ierecord` (
 CREATE TABLE IF NOT EXISTS `{prefix}_user` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `username` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
+  `password` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
   `salt` varchar(32) COLLATE utf8_unicode_ci NOT NULL,
-  `password` varchar(40) COLLATE utf8_unicode_ci NOT NULL,
-  `fb` tinyint(1) NOT NULL DEFAULT '0',
+  `token` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `social` tinyint(1) NOT NULL DEFAULT '0',
   `name` varchar(150) COLLATE utf8_unicode_ci NOT NULL,
   `create_date` int(11) unsigned NOT NULL,
   `visited` int(11) unsigned DEFAULT NULL,
@@ -73,6 +74,8 @@ CREATE TABLE IF NOT EXISTS `{prefix}_user` (
   `status` tinyint(1) unsigned NOT NULL,
   `ip` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
   `session_id` varchar(32) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `active` tinyint(1) NOT NULL DEFAULT '1',
+  `permission` text COLLATE utf8_unicode_ci,
   PRIMARY KEY (`id`),
   UNIQUE KEY `username` (`username`) USING BTREE
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci ;

@@ -5,6 +5,9 @@
   <form id=forgot_frm method=post autocomplete=off action="{WEBURL}index.php?action=forgot">
     <h2 class="table fullwidth">
       <span class="td icon-password">{LNG_Forgot}</span>
+      <span class="td icon-language language-menu" title="{LNG_Change language}">
+        <ul>{LANGUAGES}</ul>
+      </span>
     </h2>
     <aside class="{CLASS} center">{MESSAGE}</aside>
     <fieldset>
@@ -21,8 +24,7 @@
       <input type="hidden" name="action" value="forgot">
     </fieldset>
     <fieldset class="center">
-      <a href="index.php?action=login">{LNG_Sign in}</a>
-      &nbsp;/&nbsp;<a href="index.php?action=register">{LNG_Register}</a>
+        {LOGINMENU}
     </fieldset>
   </form>
   <script>

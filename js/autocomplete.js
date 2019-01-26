@@ -6,11 +6,11 @@
  * @copyright 2016 Goragod.com
  * @license http://www.kotchasan.com/license/
  */
-(function() {
+(function () {
   "use strict";
   window.GAutoComplete = GClass.create();
   GAutoComplete.prototype = {
-    initialize: function(id, o) {
+    initialize: function (id, o) {
       var options = {
         className: "gautocomplete",
         itemClass: "item",
@@ -26,7 +26,7 @@
       for (var property in o) {
         options[property] = o[property];
       }
-      var cancleEvent = false;
+      var cancelEvent = false;
       var showing = false;
       var listindex = 0;
       var list = new Array();
@@ -49,7 +49,7 @@
         listindex = Math.max(0, id);
         listindex = Math.min(list.length - 1, listindex);
         var selItem = null;
-        forEach(list, function() {
+        forEach(list, function () {
           if (listindex == this.itemindex) {
             this.addClass("select");
             selItem = this;
@@ -66,16 +66,17 @@
             self.input.datas = this.datas;
             options.callBack.call(this.datas);
             self.text = self.input.value;
-          } catch (e) {}
+          } catch (e) {
+          }
         }
       }
-      var _mouseclick = function() {
+      var _mouseclick = function () {
         onSelect.call(this);
         if (Object.isFunction(options.onSuccess)) {
           options.onSuccess.call(self.input);
         }
       };
-      var _mousemove = function() {
+      var _mousemove = function () {
         _movehighlight(this.itemindex);
       };
       function _populateitems(datas) {
@@ -103,18 +104,18 @@
         display.style.left = "-100000px";
         showing = false;
       }
-      var _search = function() {
+      var _search = function () {
         window.clearTimeout(self.timer);
         req.abort();
         if (self.text != self.input.value) {
           options.onChanged.call(self.input);
         }
-        if (!cancleEvent && options.url) {
+        if (!cancelEvent && options.url) {
           var q = options.get.call(this);
           if (q && q != "") {
             self.input.addClass(options.loadingClass);
-            self.timer = window.setTimeout(function() {
-              req.send(options.url, q, function(xhr) {
+            self.timer = window.setTimeout(function () {
+              req.send(options.url, q, function (xhr) {
                 self.input.removeClass(options.loadingClass);
                 if (xhr.responseText !== "") {
                   var datas = xhr.responseText.toJSON();
@@ -135,11 +136,7 @@
                   if (vp.left + dd.width > cw) {
                     display.style.width = cw - vp.left - 5 + "px";
                   }
-                  if (
-                    vp.top + dm.height + 5 + dd.height >=
-                    document.viewport.getHeight() +
-                      document.viewport.getscrollTop()
-                  ) {
+                  if (vp.top + dm.height + 5 + dd.height >= document.viewport.getHeight() + document.viewport.getscrollTop()) {
                     display.style.top = vp.top - dd.height - 5 + "px";
                   } else {
                     display.style.top = vp.top + dm.height + 5 + "px";
@@ -154,7 +151,7 @@
             _hide();
           }
         }
-        cancleEvent = false;
+        cancelEvent = false;
       };
       function _showitem(item) {
         if (item) {
@@ -171,14 +168,14 @@
         var key = GEvent.keyCode(evt);
         if (key == 40) {
           _showitem(_movehighlight(listindex + 1));
-          cancleEvent = true;
+          cancelEvent = true;
         } else if (key == 38) {
           _showitem(_movehighlight(listindex - 1));
-          cancleEvent = true;
+          cancelEvent = true;
         } else if (key == 13) {
-          cancleEvent = true;
+          cancelEvent = true;
           this.removeClass(options.loadingClass);
-          forEach(list, function() {
+          forEach(list, function () {
             if (this.itemindex == listindex) {
               onSelect.call(this);
             }
@@ -189,36 +186,36 @@
         } else if (key == 32) {
           if (this.value == "") {
             _search();
-            cancleEvent = true;
+            cancelEvent = true;
           }
         }
-        if (cancleEvent) {
+        if (cancelEvent) {
           GEvent.stop(evt);
         }
       }
       self.input.addEvent("click", _search);
       self.input.addEvent("keyup", _search);
       self.input.addEvent("keydown", _dokeydown);
-      self.input.addEvent("blur", function() {
+      self.input.addEvent("blur", function () {
         _hide();
       });
-      $G(document.body).addEvent("click", function() {
+      $G(document.body).addEvent("click", function () {
         _hide();
       });
     },
-    setText: function(value) {
+    setText: function (value) {
       this.input.value = value;
       this.text = value;
     },
-    valid: function() {
+    valid: function () {
       this.input.valid();
       this.text = this.input.value;
     },
-    invalid: function() {
+    invalid: function () {
       this.input.invalid();
       this.text = this.input.value;
     },
-    reset: function() {
+    reset: function () {
       this.input.reset();
       this.text = this.input.value;
     }
@@ -250,24 +247,13 @@ function initAutoComplete(id, link, displayFields, icon, options) {
         }
       }
       var row = datas.join(" ").unentityify();
-      forEach(
-        $E(id)
-          .value.replace(/[\s]+/, " ")
-          .split(" "),
-        function() {
-          if (this.length > 0) {
-            var patt = new RegExp("(" + this.preg_quote() + ")", "gi");
-            row = row.replace(patt, "<em>$1</em>");
-          }
+      forEach($E(id).value.replace(/[\s]+/, " ").split(" "), function () {
+        if (this.length > 0) {
+          var patt = new RegExp("(" + this.preg_quote() + ")", "gi");
+          row = row.replace(patt, "<em>$1</em>");
         }
-      );
-      return (
-        '<p><span class="icon-' +
-        (icon || this.icon || "search") +
-        '">' +
-        row +
-        "</span></p>"
-      );
+      });
+      return '<p><span class="icon-' + (icon || this.icon || "search") + '">' + row + "</span></p>";
     }
   }
   var o = {

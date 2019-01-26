@@ -11,19 +11,19 @@ var loader,
 function send(target, query, callback, wait, c) {
   var req = new GAjax();
   req.initLoading(wait || "wait", false, c);
-  req.send(target, query, function(xhr) {
+  req.send(target, query, function (xhr) {
     if (callback) {
       callback.call(this, xhr);
     }
   });
 }
-var hideModal = function() {
+var hideModal = function () {
   if (modal != null) {
     modal.hide();
   }
 };
 function showModal(src, qstr, doClose, className) {
-  send(src, qstr, function(xhr) {
+  send(src, qstr, function (xhr) {
     var ds = xhr.responseText.toJSON();
     var detail = "";
     if (ds) {
@@ -60,15 +60,17 @@ function defaultSubmit(ds) {
     } else if (prop == "alert") {
       _alert = val;
     } else if (prop == "modal") {
-      if (modal && val == "close") {
-        modal.hide();
+      if (val == "close") {
+        if (modal) {
+          modal.hide();
+        }
+      } else {
+        if (!modal) {
+          modal = new GModal();
+        }
+        modal.show(val);
+        val.evalScript();
       }
-    } else if (prop == "showmodal") {
-      if (!modal) {
-        modal = new GModal();
-      }
-      modal.show(val);
-      val.evalScript();
     } else if (prop == "elem") {
       el = $E(val);
       if (el) {
@@ -81,14 +83,14 @@ function defaultSubmit(ds) {
       _url = val;
       _location = val;
     } else if (prop == "open") {
-      window.setTimeout(function() {
+      window.setTimeout(function () {
         window.open(val.replace(/&amp;/g, "&"));
       }, 1);
     } else if (prop == "tab") {
       initWriteTab("accordient_menu", val);
     } else if (remove.test(prop)) {
       if ($E(val)) {
-        $G(val).fadeOut(function() {
+        $G(val).fadeOut(function () {
           $G(val).remove();
         });
       }
@@ -115,11 +117,7 @@ function defaultSubmit(ds) {
       if (val == "") {
         el.valid();
       } else {
-        if (
-          val == "Please fill in" ||
-          val == "Please select" ||
-          val == "Please browse file"
-        ) {
+        if (val == "Please fill in" || val == "Please select" || val == "Please browse file") {
           val = trans(val);
           var label = el.findLabel();
           if (label) {
@@ -202,7 +200,7 @@ function doFormSubmit(xhr) {
 }
 function initWriteTab(id, sel) {
   function _doclick(sel) {
-    forEach($E(id).getElementsByTagName("a"), function() {
+    forEach($E(id).getElementsByTagName("a"), function () {
       var a = this.id.replace("tab_", "");
       if ($E(a)) {
         this.className = a == sel ? "select" : "";
@@ -211,9 +209,9 @@ function initWriteTab(id, sel) {
     });
     $E("tab").value = sel;
   }
-  forEach($G(id).elems("a"), function() {
+  forEach($G(id).elems("a"), function () {
     if ($E(this.id.replace("tab_", ""))) {
-      callClick(this, function() {
+      callClick(this, function () {
         _doclick(this.id.replace("tab_", ""));
         return false;
       });
@@ -221,7 +219,7 @@ function initWriteTab(id, sel) {
   });
   _doclick(sel);
 }
-var dataTableActionCallback = function(xhr) {
+var dataTableActionCallback = function (xhr) {
   var el,
     prop,
     val,
@@ -240,7 +238,7 @@ var dataTableActionCallback = function(xhr) {
           window.location = val;
         }
       } else if (prop == "open") {
-        window.setTimeout(function() {
+        window.setTimeout(function () {
           window.open(val.replace(/&amp;/g, "&"));
         }, 1);
       } else if (prop == "remove") {
@@ -253,7 +251,9 @@ var dataTableActionCallback = function(xhr) {
         el = $E(val);
         if (el) {
           el.className = ds.class;
-          el.title = ds.title;
+          if (ds.title) {
+            el.title = ds.title;
+          }
         }
       } else if (prop == "modal") {
         if (val == "close") {
@@ -325,7 +325,7 @@ function checkIdcard() {
   }
 }
 function initMailserver() {
-  var doChanged = function() {
+  var doChanged = function () {
     var a = this.value.toInt();
     $E("email_SMTPSecure").disabled = a == 0;
     $E("email_Username").disabled = a == 0;
@@ -339,10 +339,10 @@ function replaceURL(key, value) {
   var q,
     prop,
     urls = window.location
-      .toString()
-      .replace(/\#/g, "&")
-      .replace(/\?/g, "&")
-      .split("&"),
+    .toString()
+    .replace(/\#/g, "&")
+    .replace(/\?/g, "&")
+    .split("&"),
     new_url = new Object(),
     qs = Array(),
     l = urls.length;
@@ -371,14 +371,14 @@ function initSystem() {
   new Clock("server_time");
 }
 function selectMenu(module) {
-  forEach(document.querySelectorAll("#topmenu > ul > li"), function() {
+  forEach(document.querySelectorAll("#topmenu > ul > li"), function () {
     if ($G(this).hasClass(module)) {
       this.addClass("select");
     } else {
       this.removeClass("select");
     }
   });
-  forEach(document.querySelectorAll(".sidemenu > ul > li"), function() {
+  forEach(document.querySelectorAll(".sidemenu > ul > li"), function () {
     if ($G(this).hasClass(module)) {
       this.addClass("select");
     } else {
@@ -400,7 +400,7 @@ function loadJavascript(id, src) {
 function initEditInplace(id, model, addbtn) {
   var patt = /list_([a-z]+)_([0-9]+)(_([0-9]+))?/;
   var o = {
-    onSave: function(v, editor) {
+    onSave: function (v, editor) {
       var req = new GAjax({
         asynchronous: false
       });
@@ -408,7 +408,7 @@ function initEditInplace(id, model, addbtn) {
       req.send(
         "index.php/" + model,
         "action=" + this.id + "&value=" + encodeURIComponent(v)
-      );
+        );
       ds = req.responseText.toJSON();
       if (ds) {
         if (ds.alert) {
@@ -419,7 +419,7 @@ function initEditInplace(id, model, addbtn) {
         }
         return true;
       } else if (req.responseText != "") {
-        console.log(req.responseText);
+        alert(req.responseText);
       }
       return false;
     }
@@ -432,7 +432,7 @@ function initEditInplace(id, model, addbtn) {
     } else if (
       hs[1] == "delete" &&
       confirm(trans("You want to XXX ?").replace(/XXX/, trans("delete")))
-    ) {
+      ) {
       q = "action=" + this.id;
     } else if (hs[1] == "color") {
       q = "action=" + this.id + "&value=" + encodeURIComponent(c);
@@ -449,7 +449,7 @@ function initEditInplace(id, model, addbtn) {
       send(
         "index.php/" + model,
         q,
-        function(xhr) {
+        function (xhr) {
           var ds = xhr.responseText.toJSON();
           if (ds) {
             if (ds.data) {
@@ -473,19 +473,19 @@ function initEditInplace(id, model, addbtn) {
               alert(ds.alert);
             }
           } else if (xhr.responseText != "") {
-            console.log(xhr.responseText);
+            alert(xhr.responseText);
           }
         },
         this
-      );
+        );
     }
   }
   function _initOrder() {
     new GSortTable(id, {
       tag: "li",
-      endDrag: function() {
+      endDrag: function () {
         var trs = new Array();
-        forEach($G(id).elems("li"), function() {
+        forEach($G(id).elems("li"), function () {
           if (this.id) {
             trs.push(this.id);
           }
@@ -495,7 +495,7 @@ function initEditInplace(id, model, addbtn) {
             "index.php/" + model,
             "action=move&value=" + trs.join(",").replace(/list_/g, ""),
             doFormSubmit
-          );
+            );
         }
       }
     });
@@ -503,7 +503,7 @@ function initEditInplace(id, model, addbtn) {
   function _doInitEditInplaceMethod(src) {
     var loading = true,
       move = false;
-    forEach($G(src).elems("*"), function() {
+    forEach($G(src).elems("*"), function () {
       var hs = patt.exec(this.id);
       if (hs) {
         if ($G(this).hasClass("editinplace")) {
@@ -514,7 +514,7 @@ function initEditInplace(id, model, addbtn) {
         } else if (hs[1] == "color") {
           var t = this.title;
           this.title = trans("change color") + " (" + t + ")";
-          new GDDColor(this, function(c) {
+          new GDDColor(this, function (c) {
             $E(this.input.id).style.color = c;
             if (!loading) {
               _doAction.call(this.input, c);
@@ -536,9 +536,9 @@ function initEditInplace(id, model, addbtn) {
   _doInitEditInplaceMethod(id);
 }
 function initLanguageTable(id) {
-  forEach($G(id).elems("a"), function() {
+  forEach($G(id).elems("a"), function () {
     if ($G(this).hasClass("icon-copy")) {
-      callClick(this, function() {
+      callClick(this, function () {
         copyToClipboard(this.title);
         document.body.msgBox(trans("successfully copied to clipboard"));
         return false;
@@ -547,12 +547,39 @@ function initLanguageTable(id) {
   });
 }
 function initFirstRowNumberOnly(tr) {
-  forEach($G(tr).elems("input"), function(item, index) {
+  forEach($G(tr).elems("input"), function (item, index) {
     if (index == 0) {
-      new GMask(item, function() {
+      new GMask(item, function () {
         return /^[0-9]+$/.test(this.value);
       });
     }
+  });
+}
+function initEditProfile(prefix, countries) {
+  prefix += prefix == "" ? "" : "_";
+  var countryChanged = function () {
+    var province = $E(prefix + "province"),
+      provinceID = $E(prefix + "provinceID");
+    if (countries.indexOf(this.value) === -1) {
+      if (provinceID) {
+        $G(provinceID.parentNode.parentNode).addClass("hidden");
+      }
+      if (province) {
+        $G(province.parentNode.parentNode).removeClass("hidden");
+      }
+    } else {
+      if (province) {
+        $G(province.parentNode.parentNode).addClass("hidden");
+      }
+      if (provinceID) {
+        $G(provinceID.parentNode.parentNode).removeClass("hidden");
+      }
+    }
+  };
+  new GMultiSelect([prefix + "country"], {
+    action: WEB_URL + "index.php/index/model/province/toJSON",
+    prefix: prefix,
+    onchange: countryChanged
   });
 }
 var createLikeButton;
@@ -561,7 +588,7 @@ function initWeb(module) {
   if (navigator.userAgent.indexOf("MSIE") > -1) {
     document.body.addClass("ie");
   }
-  forEach(document.body.elems("nav"), function() {
+  forEach(document.body.elems("nav"), function () {
     if ($G(this).hasClass("topmenu sidemenu slidemenu gddmenu")) {
       new GDDMenu(this);
     }
@@ -570,7 +597,7 @@ function initWeb(module) {
   var toTop = 100;
   if ($E("toTop")) {
     if ($G("toTop").hasClass("fixed_top")) {
-      document.addEvent("toTopChange", function() {
+      document.addEvent("toTopChange", function () {
         if (document.body.hasClass("toTop")) {
           var _toTop = $G("toTop").copy();
           _toTop.zIndex = -1;
@@ -584,7 +611,7 @@ function initWeb(module) {
       });
     }
     toTop = $E("toTop").getTop();
-    document.addEvent("scroll", function() {
+    document.addEvent("scroll", function () {
       var c = this.viewport.getscrollTop() > toTop;
       if (_scrolltop != c) {
         _scrolltop = c;
@@ -609,19 +636,19 @@ function initWeb(module) {
   document.body.set(
     "data-fontSize",
     floatval(document.body.getStyle("fontSize"))
-  );
+    );
   if (fontSize > 5) {
     document.body.setStyle("fontSize", fontSize + "px");
   }
-  forEach(document.body.elems("a"), function() {
+  forEach(document.body.elems("a"), function () {
     if (/^lang_([a-z]{2,2})$/.test(this.id)) {
-      callClick(this, function(e) {
+      callClick(this, function (e) {
         var hs = /^lang_([a-z]{2,2})$/.exec(this.id);
         window.location = replaceURL("lang", hs[1]);
         GEvent.stop(e);
       });
     } else if (/font_size\s(small|normal|large)/.test(this.className)) {
-      callClick(this, function(e) {
+      callClick(this, function (e) {
         fontSize = floatval(document.body.getStyle("fontSize"));
         var hs = /font_size\s(small|normal|large)/.exec(this.className);
         if (hs[1] == "small") {
@@ -639,7 +666,7 @@ function initWeb(module) {
   });
   loader = new GLoader(
     WEB_URL + module + "loader.php/index/controller/loader/index",
-    function(xhr) {
+    function (xhr) {
       var scroll_to = "scroll-to";
       var content = $G("content");
       var datas = xhr.responseText.toJSON();
@@ -650,11 +677,11 @@ function initWeb(module) {
             content.setHTML(value);
             loader.init(content);
             content.replaceClass("loading", "animation");
-            content.Ready(function() {
+            content.Ready(function () {
               $K.init(content);
               value.evalScript();
             });
-          } else if (prop == "topic") {
+          } else if (prop == "title") {
             document.title = value.unentityify();
           } else if (prop == "menu") {
             selectMenu(value);
@@ -675,7 +702,7 @@ function initWeb(module) {
       }
     },
     null,
-    function() {
+    function () {
       $G("content").replaceClass("animation", "loading");
       return true;
     }
@@ -685,7 +712,7 @@ function initWeb(module) {
   $K.init(document.body);
 }
 if (navigator.userAgent.match(/(iPhone|iPod|iPad)/i)) {
-  document.addEventListener("touchstart", function() {}, false);
+  document.addEventListener("touchstart", function () {}, false);
 }
 function checkEmail() {
   var value = this.value;
@@ -695,7 +722,7 @@ function checkEmail() {
     this.invalid(this.title);
   } else if (
     /^[_\.0-9a-zA-Z-]+@([0-9a-zA-Z][0-9a-zA-Z-]+\.)+[a-zA-Z]{2,6}$/.test(value)
-  ) {
+    ) {
     return "value=" + encodeURIComponent(value) + id;
   } else {
     this.invalid(this.title);

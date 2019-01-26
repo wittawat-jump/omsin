@@ -24,53 +24,53 @@ use Kotchasan\Language;
  */
 class Controller extends \Gcms\Controller
 {
-    /**
-     * แก้ไขข้อมูลส่วนตัวสมาชิก
-     *
-     * @param Request $request
-     *
-     * @return string
-     */
-    public function render(Request $request)
-    {
-        // ข้อความ title bar
-        $this->title = Language::get('Editing your account');
-        // เลือกเมนู
-        $this->menu = 'tools';
-        // สมาชิก
-        if ($login = Login::isMember()) {
-            // อ่านข้อมูลที่ id ถ้าไม่มีใช้คนที่ login
-            $user = \Index\Member\Model::get($request->request('id', $login['id'])->toInt());
-            // ตัวเอง
-            if ($user && $user['id'] == $login['id']) {
-                // แสดงผล
-                $section = Html::create('section', array(
-                    'class' => 'content_bg',
-                ));
-                // breadcrumbs
-                $breadcrumbs = $section->add('div', array(
-                    'class' => 'breadcrumbs',
-                ));
-                $ul = $breadcrumbs->add('ul');
-                $ul->appendChild('<li><a class="icon-home" href="index.php">{LNG_Home}</a></li>');
-                $ul->appendChild('<li><span>{LNG_Profile}</span></li>');
-                $section->add('header', array(
-                    'innerHTML' => '<h2 class="icon-user">'.$this->title.'</h2>',
-                ));
-                $section->add('a', array(
-                    'id' => 'ierecord',
-                    'href' => WEB_URL.'index.php?module=ierecord',
-                    'title' => '{LNG_Recording} {LNG_Income}/{LNG_Expense}',
-                    'class' => 'icon-edit notext',
-                ));
-                // แสดงฟอร์ม
-                $section->appendChild(createClass('Index\Editprofile\View')->render($user, $login));
 
-                return $section->render();
-            }
-        }
-        // 404
-
-        return \Index\Error\Controller::execute($this);
+  /**
+   * แก้ไขข้อมูลส่วนตัวสมาชิก
+   *
+   * @param Request $request
+   *
+   * @return string
+   */
+  public function render(Request $request)
+  {
+    // ข้อความ title bar
+    $this->title = Language::get('Editing your account');
+    // เลือกเมนู
+    $this->menu = 'member';
+    // สมาชิก, ไม่ใช่สมาชิกตัวอย่าง
+    if ($login = Login::notDemoMode(Login::isMember())) {
+      // อ่านข้อมูลสมาชิก
+      $user = \Index\Editprofile\Model::get($request->request('id', $login['id'])->toInt());
+      if ($user && $user['id'] > 0 && ($login['id'] == $user['id'] || Login::isAdmin())) {
+        // แสดงผล
+        $section = Html::create('section', array(
+            'class' => 'content_bg',
+        ));
+        // breadcrumbs
+        $breadcrumbs = $section->add('div', array(
+          'class' => 'breadcrumbs',
+        ));
+        $ul = $breadcrumbs->add('ul');
+        $ul->appendChild('<li><span class="icon-user">{LNG_Users}</span></li>');
+        $ul->appendChild('<li><a href="{BACKURL?module=member&id=0}">{LNG_Member list}</a></li>');
+        $ul->appendChild('<li><span>{LNG_Edit}</span></li>');
+        $section->add('header', array(
+          'innerHTML' => '<h2 class="icon-profile">'.$this->title.'</h2>',
+        ));
+        $section->add('a', array(
+          'id' => 'ierecord',
+          'href' => WEB_URL.'index.php?module=ierecord',
+          'title' => '{LNG_Recording} {LNG_Income}/{LNG_Expense}',
+          'class' => 'icon-edit notext',
+        ));
+        // แสดงฟอร์ม
+        $section->appendChild(createClass('Index\Editprofile\View')->render($user, $login));
+        // คืนค่า HTML
+        return $section->render();
+      }
     }
+    // 404
+    return \Index\Error\Controller::execute($this);
+  }
 }
