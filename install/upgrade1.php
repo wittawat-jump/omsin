@@ -45,6 +45,7 @@ if (defined('ROOT_PATH')) {
         $conn->query("ALTER TABLE `$table` ADD `token` VARCHAR(50) NULL AFTER `password`");
       }
       $conn->query("ALTER TABLE `$table` CHANGE `password` `password` VARCHAR(50) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL");
+      $conn->query("ALTER TABLE `$table` CHANGE `create_date` `create_date` DATETIME NULL DEFAULT NULL");
       $content[] = '<li class="correct">ปรับปรุงตาราง `'.$table.'` สำเร็จ</li>';
       // ตาราง ierecord
       $table = $db_config['prefix'].'_ierecord';
