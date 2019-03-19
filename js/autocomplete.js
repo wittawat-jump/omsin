@@ -6,50 +6,48 @@
  * @copyright 2016 Goragod.com
  * @license http://www.kotchasan.com/license/
  */
-(function () {
+(function() {
   "use strict";
   window.GAutoComplete = GClass.create();
   GAutoComplete.prototype = {
-    initialize: function (id, o) {
+    initialize: function(id, o) {
       var options = {
-        className: "gautocomplete",
-        itemClass: "item",
         callBack: $K.emptyFunction,
         get: $K.emptyFunction,
         populate: $K.emptyFunction,
         onSuccess: $K.emptyFunction,
         onChanged: $K.emptyFunction,
-        loadingClass: "wait",
         url: false,
         interval: 300
       };
       for (var property in o) {
         options[property] = o[property];
       }
-      var cancelEvent = false;
-      var showing = false;
-      var listindex = 0;
-      var list = new Array();
+      var cancelEvent = false,
+        showing = false,
+        listindex = 0,
+        list = [],
+        req = new GAjax(),
+        self = this;
       this.input = $G(id);
       this.text = this.input.value;
-      var req = new GAjax();
-      var self = this;
       if (!$E("gautocomplete_div")) {
         var div = document.createElement("div");
         document.body.appendChild(div);
         div.id = "gautocomplete_div";
       }
       var display = $G("gautocomplete_div");
-      display.className = options.className;
+      display.className = "gautocomplete";
       display.style.left = "-100000px";
       display.style.position = "absolute";
       display.style.display = "block";
       display.style.zIndex = 9999;
+
       function _movehighlight(id) {
         listindex = Math.max(0, id);
         listindex = Math.min(list.length - 1, listindex);
         var selItem = null;
-        forEach(list, function () {
+        forEach(list, function() {
           if (listindex == this.itemindex) {
             this.addClass("select");
             selItem = this;
@@ -59,38 +57,38 @@
         });
         return selItem;
       }
-      function onSelect() {
+
+      function _onSelect() {
         if (showing) {
           _hide();
           try {
             self.input.datas = this.datas;
             options.callBack.call(this.datas);
             self.text = self.input.value;
-          } catch (e) {
-          }
+          } catch (e) {}
         }
       }
-      var _mouseclick = function () {
-        onSelect.call(this);
+      var _mouseclick = function() {
+        _onSelect.call(this);
         if (Object.isFunction(options.onSuccess)) {
           options.onSuccess.call(self.input);
         }
       };
-      var _mousemove = function () {
+      var _mousemove = function() {
         _movehighlight(this.itemindex);
       };
+
       function _populateitems(datas) {
         display.innerHTML = "";
+        list = [];
         var f, i, r, p;
-        list = new Array();
         for (i in datas) {
           r = options.populate.call(datas[i]);
           if (r && r != "") {
             p = r.toDOM();
             f = p.firstChild;
-            $G(f).className = options.itemClass;
             f.datas = datas[i];
-            f.addEvent("mousedown", _mouseclick);
+            $G(f).addEvent("mousedown", _mouseclick);
             f.addEvent("mousemove", _mousemove);
             f.itemindex = list.length;
             list.push(f);
@@ -99,12 +97,13 @@
         }
         _movehighlight(0);
       }
+
       function _hide() {
-        self.input.removeClass(options.loadingClass);
+        self.input.removeClass("wait");
         display.style.left = "-100000px";
         showing = false;
       }
-      var _search = function () {
+      var _search = function() {
         window.clearTimeout(self.timer);
         req.abort();
         if (self.text != self.input.value) {
@@ -113,10 +112,10 @@
         if (!cancelEvent && options.url) {
           var q = options.get.call(this);
           if (q && q != "") {
-            self.input.addClass(options.loadingClass);
-            self.timer = window.setTimeout(function () {
-              req.send(options.url, q, function (xhr) {
-                self.input.removeClass(options.loadingClass);
+            self.input.addClass("wait");
+            self.timer = window.setTimeout(function() {
+              req.send(options.url, q, function(xhr) {
+                self.input.removeClass("wait");
                 if (xhr.responseText !== "") {
                   var datas = xhr.responseText.toJSON();
                   listindex = 0;
@@ -153,17 +152,19 @@
         }
         cancelEvent = false;
       };
+
       function _showitem(item) {
         if (item) {
           var top = item.getTop() - display.getTop();
           var height = display.getHeight();
           if (top < display.scrollTop) {
             display.scrollTop = top;
-          } else if (top > height) {
+          } else if (top >= height) {
             display.scrollTop = top - height + item.getHeight();
           }
         }
       }
+
       function _dokeydown(evt) {
         var key = GEvent.keyCode(evt);
         if (key == 40) {
@@ -174,10 +175,10 @@
           cancelEvent = true;
         } else if (key == 13) {
           cancelEvent = true;
-          this.removeClass(options.loadingClass);
-          forEach(list, function () {
+          this.removeClass("wait");
+          forEach(list, function() {
             if (this.itemindex == listindex) {
-              onSelect.call(this);
+              _onSelect.call(this);
             }
           });
           if (Object.isFunction(options.onSuccess)) {
@@ -193,37 +194,39 @@
           GEvent.stop(evt);
         }
       }
-      self.input.addEvent("click", _search);
-      self.input.addEvent("keyup", _search);
-      self.input.addEvent("keydown", _dokeydown);
-      self.input.addEvent("blur", function () {
+      this.input.addEvent("click", _search);
+      this.input.addEvent("keyup", _search);
+      this.input.addEvent("keydown", _dokeydown);
+      this.input.addEvent("blur", function() {
         _hide();
       });
-      $G(document.body).addEvent("click", function () {
+      $G(document.body).addEvent("click", function() {
         _hide();
       });
     },
-    setText: function (value) {
+    setText: function(value) {
       this.input.value = value;
       this.text = value;
     },
-    valid: function () {
+    valid: function() {
       this.input.valid();
       this.text = this.input.value;
     },
-    invalid: function () {
+    invalid: function() {
       this.input.invalid();
       this.text = this.input.value;
     },
-    reset: function () {
+    reset: function() {
       this.input.reset();
       this.text = this.input.value;
     }
   };
 })();
+
 function initAutoComplete(id, link, displayFields, icon, options) {
   var obj,
     df = displayFields.split(",");
+
   function doGetQuery() {
     var q = null,
       value = $E(id).value;
@@ -232,12 +235,14 @@ function initAutoComplete(id, link, displayFields, icon, options) {
     }
     return q;
   }
+
   function doCallBack() {
     for (var prop in this) {
       $G(prop).setValue(this[prop] === null ? "" : this[prop]);
     }
     obj.valid();
   }
+
   function doPopulate() {
     if ($E(id)) {
       var datas = new Array();
@@ -247,7 +252,7 @@ function initAutoComplete(id, link, displayFields, icon, options) {
         }
       }
       var row = datas.join(" ").unentityify();
-      forEach($E(id).value.replace(/[\s]+/, " ").split(" "), function () {
+      forEach($E(id).value.replace(/[\s]+/, " ").split(" "), function() {
         if (this.length > 0) {
           var patt = new RegExp("(" + this.preg_quote() + ")", "gi");
           row = row.replace(patt, "<em>$1</em>");

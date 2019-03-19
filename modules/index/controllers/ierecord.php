@@ -10,10 +10,10 @@
 
 namespace Index\Ierecord;
 
+use Gcms\Login;
 use Kotchasan\Html;
 use Kotchasan\Http\Request;
 use Kotchasan\Language;
-use Gcms\Login;
 
 /**
  * module=ierecord.
@@ -24,41 +24,40 @@ use Gcms\Login;
  */
 class Controller extends \Gcms\Controller
 {
+    /**
+     * ฟอร์มบันทึกรายรับ-รายจ่าย.
+     *
+     * @param Request $request
+     *
+     * @return string
+     */
+    public function render(Request $request)
+    {
+        // ข้อความ title bar
+        $this->title = Language::trans('{LNG_Recording} {LNG_Income}/{LNG_Expense}');
+        // เลือกเมนู
+        $this->menu = 'ierecord';
+        // สมาชิก
+        if ($login = Login::isMember()) {
+            // แสดงผล
+            $section = Html::create('section');
+            // breadcrumbs
+            $breadcrumbs = $section->add('div', array(
+                'class' => 'breadcrumbs',
+            ));
+            $ul = $breadcrumbs->add('ul');
+            $ul->appendChild('<li><a class="icon-home" href="index.php">{LNG_Home}</a></li>');
+            $ul->appendChild('<li><span>{LNG_Recording}</span></li>');
+            $section->add('header', array(
+                'innerHTML' => '<h2 class="icon-billing">'.$this->title.'</h2>',
+            ));
+            // แสดงฟอร์ม
+            $section->appendChild(createClass('Index\Ierecord\View')->render($request, (object) $login));
 
-  /**
-   * ฟอร์มบันทึกรายรับ-รายจ่าย.
-   *
-   * @param Request $request
-   *
-   * @return string
-   */
-  public function render(Request $request)
-  {
-    // ข้อความ title bar
-    $this->title = Language::trans('{LNG_Recording} {LNG_Income}/{LNG_Expense}');
-    // เลือกเมนู
-    $this->menu = 'ierecord';
-    // สมาชิก
-    if ($login = Login::isMember()) {
-      // แสดงผล
-      $section = Html::create('section');
-      // breadcrumbs
-      $breadcrumbs = $section->add('div', array(
-        'class' => 'breadcrumbs',
-      ));
-      $ul = $breadcrumbs->add('ul');
-      $ul->appendChild('<li><a class="icon-home" href="index.php">{LNG_Home}</a></li>');
-      $ul->appendChild('<li><span>{LNG_Recording}</span></li>');
-      $section->add('header', array(
-        'innerHTML' => '<h2 class="icon-billing">'.$this->title.'</h2>',
-      ));
-      // แสดงฟอร์ม
-      $section->appendChild(createClass('Index\Ierecord\View')->render($request, (object)$login));
+            return $section->render();
+        }
+        // 404
 
-      return $section->render();
+        return \Index\Error\Controller::execute($this);
     }
-    // 404
-
-    return \Index\Error\Controller::execute($this);
-  }
 }
