@@ -181,8 +181,9 @@ function createClass($className, $param = null)
 {
     return new $className($param);
 }
+
 /**
- * แสดงข้อมูลตัวแปรออกทางหน้าจอ (debug).
+ * แสดงข้อมูลตัวแปรออกทาง Console ของบราวเวอร์ (debug).
  *
  * @param mixed $expression
  */
