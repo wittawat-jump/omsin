@@ -55,7 +55,7 @@ class InputItem
     }
 
     /**
-     * ค่าสี.
+     * คืนค่า ค่าสี String หรือ แอเรย์ของ String.
      *
      * @assert create('#000')->color() [==] '#000'
      * @assert create('red')->color() [==] 'red'
@@ -289,7 +289,7 @@ class InputItem
     }
 
     /**
-     * ตัวเลข
+     * ตัวเลข หรือ แอเรย์ของ ตัวเลข
      *
      * @assert create(12345)->number() [==] '12345'
      * @assert create(0.12345)->number() [==] '012345'
@@ -355,7 +355,7 @@ class InputItem
     }
 
     /**
-     * คืนค่าเป็น boolean.
+     * คืนค่าเป็น boolean หรือ แอเรย์ของ boolean.
      *
      * @assert create(true)->toBoolean() [==] 1
      * @assert create(false)->toBoolean() [==] 0
@@ -384,7 +384,7 @@ class InputItem
     }
 
     /**
-     * คืนค่าเป็น float.
+     * คืนค่าเป็น float หรือ แอเรย์ของ float.
      *
      * @assert create(0.454)->toFloat() [==] 0.454
      * @assert create(0.545)->toFloat() [==] 0.545
@@ -397,7 +397,7 @@ class InputItem
     }
 
     /**
-     * คืนค่าเป็น integer.
+     * คืนค่าเป็น integer หรือ แอเรย์ของ integer.
      *
      * @assert create(0.454)->toInt() [==] 0
      * @assert create(2.945)->toInt() [==] 2
@@ -410,7 +410,7 @@ class InputItem
     }
 
     /**
-     * คืนค่าเป็น Object.
+     * คืนค่าเป็น Object หรือ แอเรย์ของ Object.
      *
      * @assert create('test')->toObject() [==] (object)'test'
      *
