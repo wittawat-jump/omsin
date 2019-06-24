@@ -408,7 +408,7 @@ window.$K = (function() {
   Date.prototype.compare = function(d) {
     var date, month, year;
     if (Object.isString(d)) {
-      var ds = d.split("-");
+      var ds = d.replace(/\//g, '-').split("-");
       year = floatval(ds[0]);
       month = floatval(ds[1]) - 1;
       date = floatval(ds[2]);
