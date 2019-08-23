@@ -179,6 +179,10 @@ return array(
   'Port' => 'พอร์ต',
   'press Reset button to delete all user data' => 'กดปุ่มรีเซ็ตเพื่อลบข้อมูลผู้ใช้ทั้งหมด',
   'Profile' => 'ข้อมูลส่วนตัว',
+  'PUBLISHEDS' => array(
+    0 => 'ระงับการเผยแพร่',
+    1 => 'เผยแพร่'
+  ),
   'Recording' => 'บันทึก',
   'Register' => 'สมัครสมาชิก',
   'Register successfully, We have sent complete registration information to :email' => 'ลงทะเบียนสมาชิกใหม่เรียบร้อย เราได้ส่งข้อมูลการลงทะเบียนไปยัง :email เรียบร้อยแล้ว',

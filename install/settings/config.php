@@ -3,7 +3,7 @@
 /* config.php */
 
 return array(
-    'version' => '2.0.5',
+    'version' => '2.0.7',
     'web_title' => 'ออมสิน',
     'web_description' => 'แอพพลิเคชั่น รายรับ-รายจ่าย ฟรี',
     'timezone' => 'Asia/Bangkok',

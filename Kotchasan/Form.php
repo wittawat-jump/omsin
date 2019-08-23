@@ -493,7 +493,9 @@ class Form extends \Kotchasan\KBase
                 $input .= '<label'.(empty($labelClass) ? '' : ' class="'.$labelClass.'"').'>'.$element.'&nbsp;'.(isset($label) ? $label : '').'</label>';
             } else {
                 if (isset($dataPreview)) {
-                    $input .= '<div class=usericon><span><img src="'.$previewSrc.'" alt="Image preview" id='.$dataPreview.'></span></div>';
+                    $input .= '<div class="file-preview" id="'.$dataPreview.'">';
+                    $input .= isset($previewSrc) ? '<div class="file-thumb" style="background-image:url('.$previewSrc.')"></div>' : '';
+                    $input .= '</div>';
                 }
                 if (isset($label) && isset($id)) {
                     $input .= '<label for="'.$id.'">'.$label.'</label>';

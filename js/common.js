@@ -95,6 +95,10 @@ function defaultSubmit(ds) {
       }, 1);
     } else if (prop == "tab") {
       initWriteTab("accordient_menu", val);
+    } else if (prop == "valid") {
+      if ($E(val)) {
+        $G(val).valid();
+      }
     } else if (remove.test(prop)) {
       if ($E(val)) {
         $G(val).fadeOut(function() {
@@ -111,7 +115,7 @@ function defaultSubmit(ds) {
       if (val == "") {
         el.valid();
       } else {
-        if (val == "Please fill in" || val == "Please select" || val == "Please browse file" || val == "already exist" || "Please select at least one item") {
+        if (val == "Please fill in" || val == "Please select" || val == "Please browse file" || val == "already exist" || val == "Please select at least one item" || val=="Invalid data") {
           var label = el.findLabel();
           if (label) {
             t = label.innerHTML.strip_tags();
@@ -130,6 +134,8 @@ function defaultSubmit(ds) {
               val = t + " " + trans(val);
             } else if (val == "Please select at least one item") {
               val = PLEASE_SELECT_AT_LEAST_ONE_ITEM.replace('XXX', t)
+            } else if (val == "Invalid data") {
+              val = INVALID_DATA.replace('XXX', t)
             } else {
               val = trans(val) + " " + t;
             }
@@ -497,8 +503,8 @@ function initEditInplace(id, model, addbtn) {
   }
 
   function _initOrder() {
-    new GSortTable(id, {
-      tag: "li",
+    new GDragDrop(id, {
+      dragClass: "icon-move",
       endDrag: function() {
         var trs = new Array();
         forEach($G(id).elems("li"), function() {
