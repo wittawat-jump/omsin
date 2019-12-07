@@ -1,10 +1,10 @@
 # Kotchasan
 
+.history
 .htaccess
 .gitignore
 .vscode
 robots.txt
-/datas/*
-/settings/*
-/admin/*
-/.history/*
+datas/
+settings/
+admin/

@@ -61,10 +61,7 @@ function initIerecord() {
       $G("transfer").addClass("hidden");
       $E("write_category").parentNode.parentNode.style.display = "block";
       $E("write_wallet").parentNode.parentNode.style.display = "block";
-      $G("write_category")
-        .setValue("")
-        .reset()
-        .focus();
+      $G("write_category").setValue("").reset();
       $E("write_wallet_name").parentNode.parentNode.style.display = "none";
       $E("write_comment").parentNode.parentNode.style.display = "block";
     }

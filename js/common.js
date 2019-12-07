@@ -115,7 +115,7 @@ function defaultSubmit(ds) {
       if (val == "") {
         el.valid();
       } else {
-        if (val == "Please fill in" || val == "Please select" || val == "Please browse file" || val == "already exist" || val == "Please select at least one item" || val=="Invalid data") {
+        if (val == "Please fill in" || val == "Please select" || val == "Please browse file" || val == "already exist" || val == "Please select at least one item" || val == "Invalid data") {
           var label = el.findLabel();
           if (label) {
             t = label.innerHTML.strip_tags();
@@ -559,15 +559,13 @@ function initEditInplace(id, model, addbtn) {
   _doInitEditInplaceMethod(id);
 }
 
-function initLanguageTable(id) {
-  forEach($G(id).elems("a"), function() {
-    if ($G(this).hasClass("icon-copy")) {
-      callClick(this, function() {
-        copyToClipboard(this.title);
-        document.body.msgBox(trans("successfully copied to clipboard"));
-        return false;
-      });
-    }
+function initCopyToClipboard(id) {
+  forEach($E(id).querySelectorAll('.icon-copy'),function(){
+    callClick(this, function() {
+      copyToClipboard(this.title);
+      document.body.msgBox(trans("successfully copied to clipboard"));
+      return false;
+    });
   });
 }
 

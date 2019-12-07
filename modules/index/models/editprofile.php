@@ -75,18 +75,18 @@ class Model extends \Kotchasan\Model
                 // ตรวจสอบค่าที่ส่งมา
                 $user = self::get($request->post('register_id')->toInt());
                 if ($user) {
-                    // ตัวเอง ไม่สามารถอัปเดท status ได้
+                    // ตัวเอง ไม่สามารถอัปเดต status ได้
                     if ($login['id'] == $user['id']) {
                         unset($save['status']);
                     }
                     if (Login::isAdmin()) {
-                        // แอดมิน อัปเดท permission ได้
+                        // แอดมิน อัปเดต permission ได้
                         $save['permission'] = empty($permission) ? '' : ','.implode(',', $permission).',';
                     } elseif ($login['id'] != $user['id']) {
                         // ไม่ใช่แอดมินแก้ไขได้แค่ตัวเองเท่านั้น
                         $user = null;
                     } else {
-                        // ไม่ใช่แอดมินและไม่ใช่ตัวเอง ไม่สามารถอัปเดทได้
+                        // ไม่ใช่แอดมินและไม่ใช่ตัวเอง ไม่สามารถอัปเดตได้
                         unset($save['status']);
                     }
                 }
@@ -134,12 +134,12 @@ class Model extends \Kotchasan\Model
                             // แก้ไข
                             if (!empty($password)) {
                                 $save['salt'] = uniqid();
-                                $save['password'] = sha1($password.$save['salt']);
+                                $save['password'] = sha1(self::$cfg->password_key.$password.$save['salt']);
                             }
                             // แก้ไข
                             $db->update($table_user, $user['id'], $save);
                             if ($login['id'] == $user['id']) {
-                                // ตัวเอง อัปเดทข้อมูลการ login
+                                // ตัวเอง อัปเดตข้อมูลการ login
                                 $save['permission'] = $permission;
                                 $save['password'] = $password;
                                 $_SESSION['login'] = ArrayTool::replace($_SESSION['login'], $save);

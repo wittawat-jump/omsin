@@ -65,7 +65,7 @@ class Model extends \Kotchasan\Model
                     'lastvisited' => time(),
                     // โหมดตัวอย่างเป็นแอดมิน, ไม่ใช่เป็นสมาชิกทั่วไป
                     'status' => self::$cfg->demo_mode ? 1 : 0,
-                    'token' => sha1($password.uniqid()),
+                    'token' => sha1(self::$cfg->password_key.$password.uniqid()),
                 ), $permissions);
                 if ($save === null) {
                     // ไม่สามารถบันทึก owner ได้
@@ -73,14 +73,14 @@ class Model extends \Kotchasan\Model
                     $ret['isMember'] = 0;
                 }
             } elseif ($search['social'] == 2) {
-                // google เคยเยี่ยมชมแล้ว อัปเดทการเยี่ยมชม
+                // google เคยเยี่ยมชมแล้ว อัปเดตการเยี่ยมชม
                 $save = $search;
                 ++$save['visited'];
                 $save['lastvisited'] = time();
                 $save['ip'] = $request->getClientIp();
                 $save['salt'] = uniqid();
-                $save['token'] = sha1($password.$save['salt']);
-                // อัปเดท
+                $save['token'] = sha1(self::$cfg->password_key.$password.$save['salt']);
+                // อัปเดต
                 $db->update($user_table, $search['id'], $save);
                 $save['permission'] = explode(',', trim($save['permission'], " \t\n\r\0\x0B,"));
             } else {

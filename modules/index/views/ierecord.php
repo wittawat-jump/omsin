@@ -65,6 +65,7 @@ class View extends \Gcms\View
             'labelClass' => 'g-input icon-config',
             'label' => '{LNG_What do you want to do}?',
             'options' => $status,
+            'autofocus' => true,
         ));
         // category
         $fieldset->add('text', array(

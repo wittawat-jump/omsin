@@ -82,6 +82,8 @@ class View extends \Gcms\View
             'uri' => $uri,
             /* Model */
             'model' => \Index\Iereport\Model::search($owner),
+            /* เรียงลำดับ */
+            'sort' => $request->cookie('search_Sort', 'create_date,id')->toString(),
             /* ตัวเลือกด้านบนของตาราง ใช้จำกัดผลลัพท์การ query */
             'filters' => array(
                 array(
@@ -99,7 +101,7 @@ class View extends \Gcms\View
                 array(
                     'name' => 'year',
                     'text' => '{LNG_year}',
-                    'options' => array(0 => '{LNG_all items}') + \Index\Select\Model::getYears($owner['account_id']),
+                    'options' => array(0 => '{LNG_all items}')+\Index\Select\Model::getYears($owner['account_id']),
                     'value' => $owner['year'],
                 ),
                 array(
@@ -160,9 +162,20 @@ class View extends \Gcms\View
                     'class' => 'right',
                 ),
             ),
+            /* ฟังก์ชั่นตรวจสอบการแสดงผลปุ่มในแถว */
+            'onCreateButton' => array($this, 'onCreateButton'),
+            /* ปุ่มแสดงในแต่ละแถว */
+            'buttons' => array(
+                array(
+                    'class' => 'icon-edit button green',
+                    'href' => $uri->createBackUri(array('module' => 'ieedit', 'id' => ':id')),
+                    'text' => '{LNG_Edit}',
+                ),
+            ),
         ));
         // save cookie
         setcookie('search_perPage', $table->perPage, time() + 2592000, '/', HOST, HTTPS, true);
+        setcookie('search_Sort', $table->sort, time() + 2592000, '/', HOST, HTTPS, true);
 
         return $table->render();
     }
@@ -214,5 +227,17 @@ class View extends \Gcms\View
     public function onCreateFooter()
     {
         return '<tr><td class=right colspan=4></td><td>{LNG_Total}</td><td class="right color-'.($this->total < 0 ? 'red' : 'green').'">'.Currency::format($this->total).'</td></tr>';
+    }
+
+    /**
+     * ฟังก์ชั่นตรวจสอบว่าสามารถสร้างปุ่มได้หรือไม่.
+     *
+     * @param $btn        string id ของ button
+     * @param $attributes array  property ของปุ่ม
+     * @param $item      array  ข้อมูลในแถว
+     */
+    public function onCreateButton($btn, $attributes, $item)
+    {
+        return $item['status'] == 'TRANSFER' ? false : $attributes;
     }
 }

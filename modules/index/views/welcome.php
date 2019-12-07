@@ -116,7 +116,7 @@ class View extends \Kotchasan\View
     {
         $menus = array();
         if (in_array($from, array('register', 'forgot'))) {
-            $menus[] = '<a href="index.php?action=login">{LNG_Sign in}</a>';
+            $menus[] = '<a href="index.php?action=login">{LNG_Login}</a>';
         }
         if (in_array($from, array('forgot', 'login')) && !empty(self::$cfg->user_register)) {
             $menus[] = '<a href="index.php?action=register">{LNG_Register}</a>';

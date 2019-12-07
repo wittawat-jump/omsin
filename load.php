@@ -32,6 +32,11 @@ define('DB_LOG', false);
  */
 define('AUTO_LANGUAGE', false);
 /*
+ * ระบุ SQL Mode ที่ต้องการ
+ * หากพบปัญหาการใช้งาน
+ */
+//define('SQL_MODE', '');
+/*
  * รายรับ
  */
 define('RECEIVE', 1);

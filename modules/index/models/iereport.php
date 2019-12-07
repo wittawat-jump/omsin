@@ -208,8 +208,7 @@ class Model extends \Kotchasan\Model
         return static::createQuery()
             ->select('id', 'account_id', 'create_date', 'category_id', 'wallet', 'comment', 'income', 'expense', 'status', 'transfer_to')
             ->from('ierecord')
-            ->where($where)
-            ->order('create_date DESC');
+            ->where($where);
     }
 
     /**

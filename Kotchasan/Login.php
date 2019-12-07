@@ -64,11 +64,11 @@ class Login extends \Kotchasan\KBase
         if ($params['username'] !== self::$cfg->get($field_name)) {
             self::$login_input = $field_name;
 
-            return 'not a registered user';
+            return Language::get('not a registered user');
         } elseif ($params['password'] !== self::$cfg->get('password')) {
             self::$login_input = 'password';
 
-            return 'password incorrect';
+            return Language::get('password incorrect');
         } else {
             return array(
                 'id' => 1,
@@ -141,7 +141,7 @@ class Login extends \Kotchasan\KBase
                     if (is_string($login_result)) {
                         // ข้อความผิดพลาด
                         self::$login_input = self::$login_input == 'password' ? 'login_password' : 'login_username';
-                        self::$login_message = Language::get($login_result);
+                        self::$login_message = $login_result;
                     }
                     // logout ลบ session และ cookie
                     unset($_SESSION['login']);
@@ -182,5 +182,34 @@ class Login extends \Kotchasan\KBase
     public static function isMember()
     {
         return empty($_SESSION['login']) ? null : $_SESSION['login'];
+    }
+
+    /**
+     * ตรวจสอบสถานะสมาชิก
+     * แอดมินสูงสุด (status=1) ทำได้ทุกอย่าง
+     * คืนค่าข้อมูลสมาชิก (แอเรย์) ถ้าไม่สามารถทำรายการได้คืนค่า null.
+     *
+     * @param array        $login
+     * @param array|int $statuses
+     *
+     * @return array|null
+     */
+    public static function checkStatus($login, $statuses)
+    {
+        if (!empty($login)) {
+            if ($login['status'] == 1) {
+                // แอดมิน
+                return $login;
+            } elseif (is_array($statuses)) {
+                if (in_array($login['status'], $statuses)) {
+                    return $login;
+                }
+            } elseif ($login['status'] == $statuses) {
+                return $login;
+            }
+        }
+        // ไม่มีสิทธิ
+
+        return null;
     }
 }

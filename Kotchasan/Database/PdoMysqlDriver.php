@@ -57,6 +57,9 @@ class PdoMysqlDriver extends Driver
         if (isset($this->settings->username) && isset($this->settings->password)) {
             try {
                 $this->connection = new \PDO($sql, $this->settings->username, $this->settings->password, $this->options);
+                if (defined('SQL_MODE')) {
+                    $this->connection->query("SET SESSION sql_mode = '".SQL_MODE."'");
+                }
             } catch (\PDOException $e) {
                 throw new \Exception($e->getMessage(), 500, $e);
             }
@@ -126,7 +129,7 @@ class PdoMysqlDriver extends Driver
 
     /**
      * ฟังก์ชั่นเพิ่มข้อมูลใหม่ลงในตาราง
-     * ถ้ามีข้อมูลเดิมอยู่แล้วจะเป็นการอัปเดท
+     * ถ้ามีข้อมูลเดิมอยู่แล้วจะเป็นการอัปเดต
      * (ข้อมูลเดิมตาม KEY ที่เป็น UNIQUE)
      * insert คืนค่า id ที่เพิ่ม
      * update คืนค่า 0
@@ -187,29 +190,30 @@ class PdoMysqlDriver extends Driver
             if (isset($sqls['orupdate'])) {
                 $sql .= ' ON DUPLICATE KEY UPDATE '.implode(', ', $sqls['orupdate']);
             }
-        } elseif (isset($sqls['union'])) {
-            $sql .= '('.implode(') UNION (', $sqls['union']).')';
-        } elseif (isset($sqls['unionAll'])) {
-            $sql .= '('.implode(') UNION ALL (', $sqls['unionAll']).')';
         } else {
-            if (isset($sqls['select'])) {
-                $sql .= 'SELECT '.$sqls['select'];
-                if (isset($sqls['from'])) {
-                    $sql .= ' FROM '.$sqls['from'];
+            if (isset($sqls['union'])) {
+                $sql .= '('.implode(') UNION (', $sqls['union']).')';
+            } elseif (isset($sqls['unionAll'])) {
+                $sql .= '('.implode(') UNION ALL (', $sqls['unionAll']).')';
+            } else {
+                if (isset($sqls['select'])) {
+                    $sql .= 'SELECT '.$sqls['select'];
+                    if (isset($sqls['from'])) {
+                        $sql .= ' FROM '.$sqls['from'];
+                    }
+                } elseif (isset($sqls['update'])) {
+                    $sql .= 'UPDATE '.$sqls['update'];
+                    if (isset($sqls['set'])) {
+                        $sql .= ' SET '.implode(', ', $sqls['set']);
+                    }
+                } elseif (isset($sqls['delete'])) {
+                    $sql .= 'DELETE FROM '.$sqls['delete'];
                 }
-            }
-            if (isset($sqls['update'])) {
-                $sql .= 'UPDATE '.$sqls['update'];
-            } elseif (isset($sqls['delete'])) {
-                $sql .= 'DELETE FROM '.$sqls['delete'];
             }
             if (isset($sqls['join'])) {
                 foreach ($sqls['join'] as $join) {
                     $sql .= $join;
                 }
-            }
-            if (isset($sqls['set'])) {
-                $sql .= ' SET '.implode(', ', $sqls['set']);
             }
             if (isset($sqls['where'])) {
                 $sql .= ' WHERE '.$sqls['where'];
