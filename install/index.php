@@ -1,9 +1,9 @@
 <?php
-/*
+
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(-1);
- */
+
 session_start();
 // path
 define('ROOT_PATH', str_replace(array('\\', 'install/index.php'), array('/', ''), __FILE__));
